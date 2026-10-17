@@ -22,3 +22,23 @@ __pycache__/
 
 # Logs
 *.log
+
+# database files
+data/postgres/
+data/redis/
+
+# personal / downloaded data
+kobo_test_pull.json
+media/
+recordings/
+*.m4a
+*.mp3
+*.wav
+*.mp4
+*.mov
+*.jpg
+*.jpeg
+
+# working files
+audio_scripts.txt
+eval_label_review.xlsx
