@@ -1,0 +1,50 @@
+# =====================================================================
+# AI CARE Assistant
+# Postgres (with pgvector) + Redis
+#
+#   docker compose up -d      # start
+#   docker compose ps         # check status
+#   docker compose down       # stop
+# =====================================================================
+
+services:
+
+  # Postgres with pgvector: cases, assessments, vectors
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: aicare_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aicare_net
+
+  # Redis: job queue for the background worker
+  redis:
+    image: redis:7-alpine
+    container_name: aicare_redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aicare_net
+
+networks:
+  aicare_net:
