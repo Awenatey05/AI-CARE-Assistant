@@ -1,5 +1,7 @@
-python-dotenv
-pypdf
-pytest
-pydantic>=2.8
-requests
+pandas==3.0.6
+pydantic==2.14.1
+pypdf==6.21.1
+pytest==9.1.1
+python-dotenv==1.2.4
+requests==2.34.2
+Python 3.14.7
