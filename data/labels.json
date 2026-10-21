@@ -28887,14 +28887,14 @@
     "id": 3,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "She was wearing torn clothes, had not bathed for days, and said nobody prepares food for her.",
+    "quote": "She was wearing torn clothes and had not bathed for days, and said nobody prepares food for her, nobody cooks for her.",
     "summary_quote": "the child is not being fed or cared for"
    },
    {
     "id": 5,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "She said she was accused of witchcraft after a neighbour fell sick and was chased from the house.",
+    "quote": "She said she was accused of witchcraft after a neighbour fell sick and was chased from the home.",
     "summary_quote": "child marriage or a harmful traditional practice"
    },
    {
@@ -28928,7 +28928,7 @@
   "flags": [],
   "region": "northern",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 14-year-old girl in Kumbungu, Kumbungu. She dropped out of school last year and now stays at home. She said she was accused of witchcraft after a neighbour fell sick and was chased from the house. There is no record of her birth and the family said they never registered it. She was wearing torn clothes, had not bathed for days, and said nobody prepares food for her. The caregiver was drunk when I visited and shouted at the child throughout. She lives with her aunt in town so that she can attend a better school, and she visits her parents during holidays. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 14-year-old girl in Kumbungu. She dropped out of school last year and now stays at home. She said she was accused of witchcraft after a neighbour fell sick and was chased from the home. There is no record of her birth and the family said they never registered it. She was wearing torn clothes and had not bathed for days, and said nobody prepares food for her, nobody cooks for her. The caregiver was drunk when I visited and shouted at the child throughout. She lives with her aunt in town so that she can attend a better school, and she visits her parents during holidays. Please, can someone come and check on her? Thank you."
  },
  "HL-2025-0051": {
   "id": "HL-2025-0051",
@@ -29103,7 +29103,7 @@
   "flags": [],
   "region": "oti",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I don't want to give my name. I am calling about a 10-year-old girl in Nkwanta, Nkwanta South. The child said there was no food in the house yesterday and she went to bed hungry. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello, good morning. I don't want to mention my name. I am calling about a 10-year-old girl in Nkwanta, Nkwanta South. The child said there was no food in the house yesterday and she went to bed hungry. Please, can someone come and check on her? Thank you."
  },
  "HL-2026-0056": {
   "id": "HL-2026-0056",
@@ -29208,7 +29208,7 @@
   "flags": [],
   "region": "upper_east",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I am a volunteer in the community. I am calling about a 7-year-old boy in Bongo, Bongo. He carries loads at the market as a head porter from morning until night instead of attending school. He said he cannot sleep because of nightmares and does not want to play with other children any more. The family is poor but the child said they share whatever food they have and he ate twice yesterday. Please, can someone come and check on him? Thank you."
+  "reference_transcript": "Hello, good morning. I am a volunteer in the community. I am calling about a 7-year-old boy in Bongo, Bongo. He carries loads at the market as a head porter from morning until night instead of attending school. He said he cannot sleep because of nightmares and does not want to play with other children any more. The family is poor but the child said they share whatever food they have and he eats twice a day ,and he ate twice yesterday. Please, can someone come and check on him? Thank you."
  },
  "HL-2026-0060": {
   "id": "HL-2026-0060",
@@ -29614,7 +29614,7 @@
   "flags": [],
   "region": "upper_east",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Zuarungu, Bolgatanga Municipal. I just wanted some advice. The child has been a bit quiet lately, but I have not seen anything bad happen. Meals are small because of the lean season, but the caregiver makes sure the children eat first. She was upset about losing a football match but otherwise seemed happy. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Zuarungu, Bolgatanga Municipal. I just wanted some advice. The child has been really quiet lately, but I have not seen anything bad happen. Meals are small sometimes i see the meals they give her,meals are small because of the lean season, but then the caretaker always makes sure the children eat first. She was upset about losing a football match but otherwise seemed happy. Please, can someone come and check on her? or give some advice on what to do. That would be very good. Thank you."
  },
  "HL-2026-0075": {
   "id": "HL-2026-0075",
@@ -29626,7 +29626,7 @@
     "id": 10,
     "subtype": "b",
     "source": "transcript_and_summary",
-    "quote": "Because of his disability he is kept inside and not allowed to eat with the family.",
+    "quote": "Because of his disability he is usually kept inside and not allowed to eat with the family.",
     "summary_quote": "the child is treated worse than other children"
    }
   ],
@@ -29637,7 +29637,7 @@
   "flags": [],
   "region": "upper_east",
   "year": 2026,
-  "reference_transcript": "Hello, good morning. I am a relative of the family. I am calling about a 5-year-old boy in Bawku, Bawku Municipal. Because of his disability he is kept inside and not allowed to eat with the family. Please, can someone come and check on him? Thank you."
+  "reference_transcript": "Hello, good morning. I am a relative of the family. I am calling about a 5-year-old boy in Bawku, Bawku Municipal. Because of his disability he is usually kept inside and not allowed to eat with the family. Please, can someone come and check on him and I can also be called at any time if you need more information. Thank you."
  },
  "HL-2025-0076": {
   "id": "HL-2025-0076",
@@ -29694,7 +29694,7 @@
     "id": 3,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "When she had malaria last month nobody took her to the clinic, although there was money for drinks.",
+    "quote": "When she was sick and had malaria last month nobody took her to the clinic, although there was money for drinks.",
     "summary_quote": "the child is not being fed or cared for"
    },
    {
@@ -29715,7 +29715,7 @@
     "id": 10,
     "subtype": "a",
     "source": "transcript_and_summary",
-    "quote": "She has no birth certificate and the family never registered her birth.",
+    "quote": "She has no birth certificate and the family has never registered her birth.",
     "summary_quote": "the child's birth was never registered"
    }
   ],
@@ -29726,7 +29726,7 @@
   "flags": [],
   "region": "oti",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 15-year-old girl in Dambai, Krachi East. She has never been enrolled in school. When she had malaria last month nobody took her to the clinic, although there was money for drinks. She said she sometimes wishes she could disappear. She has no birth certificate and the family never registered her birth. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 15-year-old girl in Dambai, Krachi East. She has never been enrolled in school. When she was sick and had malaria last month nobody took her to the clinic, although there was money for drinks. She said she sometimes wishes she could disappear. She has no birth certificate and the family has never registered her birth. Please, can someone come and check on her? I beg you. Thank you."
  },
  "HL-2025-0078": {
   "id": "HL-2025-0078",
@@ -30221,7 +30221,7 @@
     "id": 9,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "He said he does not feel safe at home and is always worried.",
+    "quote": "He said he does not feel safe at home and is always always worried.",
     "summary_quote": "the child is very distressed"
    }
   ],
@@ -30232,7 +30232,7 @@
   "flags": [],
   "region": "savannah",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I am a nurse at the clinic. I am calling about a 16-year-old boy in Mandari, Bole. He said he does not feel safe at home and is always worried. Please, can someone come and check on him? Thank you."
+  "reference_transcript": "Hello, good morning, good morning. I am a nurse at the clinic. I am calling about a 16-year-old boy in Mandari, Bole. He said he does not feel safe at home and is always always worried. Please, can someone come and check on him? Thank you."
  },
  "HL-2025-0095": {
   "id": "HL-2025-0095",
@@ -30380,21 +30380,21 @@
     "id": 3,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "When she had malaria last month nobody took her to the clinic, although there was money for drinks.",
+    "quote": "When she had malaria last month nobody took her to the clinic ,she was very sick.",
     "summary_quote": "the child is not being fed or cared for"
    },
    {
     "id": 4,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "She goes fishing on the river with an employer at night and sleeps during school hours.",
+    "quote": "She usually goes fishing on the river with an employer at night and sleeps during school hours so she should go fishing again on the river.",
     "summary_quote": "the child is doing work that is harmful or keeps them from school"
    },
    {
     "id": 7,
     "subtype": null,
     "source": "transcript_and_summary",
-    "quote": "She has never been enrolled in school.",
+    "quote": "She has never been to school.",
     "summary_quote": "the child is not attending school"
    },
    {
@@ -30408,7 +30408,7 @@
     "id": 10,
     "subtype": "a",
     "source": "transcript_and_summary",
-    "quote": "There is no record of her birth and the family said they never registered it.",
+    "quote": "There is no record of her birth and the family have said that they have never registered it.",
     "summary_quote": "the child's birth was never registered"
    }
   ],
@@ -30419,7 +30419,7 @@
   "flags": [],
   "region": "savannah",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Tuna, Sawla-Tuna-Kalba. When she had malaria last month nobody took her to the clinic, although there was money for drinks. The child cried when I spoke to her and said she feels sad and scared most of the time. There is no record of her birth and the family said they never registered it. She has never been enrolled in school. She goes fishing on the river with an employer at night and sleeps during school hours. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Tuna, Sawla-Tuna-Kalba. When she had malaria last month nobody took her to the clinic ,she was very sick. The child cried when I spoke to her and said she feels sad and scared most of the time. There is no record of her birth and the family have said that they have never registered it. She has never been to school. She usually goes fishing on the river with an employer at night and sleeps during school hours so she should go fishing again on the river. can someone come and check on her? She looks like shes going through it. Thank you."
  },
  "HL-2025-0100": {
   "id": "HL-2025-0100",
