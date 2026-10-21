@@ -1,0 +1,7 @@
+prompt,cases,exact_match_%,precision,recall,false_alarms,missed,subtype_errors,valid_first_try_%,could_not_assess,avg_seconds,avg_summary_words
+SYSTEM_PROMPT_V1,50,54.0,0.787,0.481,10,40,3,76.0,5,7.4,15.6
+PROMPT_A,50,40.0,0.5,0.026,2,75,0,44.0,27,11.3,11.8
+PROMPT_B,50,42.0,1.0,0.013,0,76,0,46.0,26,9.4,14.5
+PROMPT_C,50,36.0,0.615,0.104,5,69,0,58.0,16,12.9,12.5
+SYSTEM_PROMPT_V2,50,52.0,0.738,0.403,11,46,0,66.0,13,10.3,16.9
+SYSTEM_PROMPT,50,54.0,0.754,0.558,14,34,2,62.0,12,10.7,15.4
