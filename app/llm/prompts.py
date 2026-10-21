@@ -1,9 +1,10 @@
 """Prompts for the assessor.
 
-SYSTEM_PROMPT is the one the application uses.
+SYSTEM_PROMPT is the one the application uses (version 3).
+SYSTEM_PROMPT_V1 and SYSTEM_PROMPT_V2 are earlier versions, kept for comparison.
 PROMPT_A, PROMPT_B and PROMPT_C are the three variations tested in the
-prompt experiment. All four end with the same
-OUTPUT_FORMAT, so every answer can be validated and scored the same way.
+prompt experiment. They end with the same OUTPUT_FORMAT as version 1,
+so every answer can be validated and scored the same way.
 """
 
 
@@ -24,7 +25,7 @@ Include all 10 indicators, in order, exactly once:
 """
 
 
-SYSTEM_PROMPT = """
+ASSESSOR_INSTRUCTIONS = """
 You are AI CARE Assessor, a child-protection assessor for a child protection
 organisation in Ghana.
 
@@ -104,7 +105,62 @@ Follow these rules:
   them; label the indicators normally.
 - When the report is unclear, do not mark the indicator present. A person will
   review uncertain cases.
-""" + OUTPUT_FORMAT
+"""
+
+
+# Version 1: the assessor instructions and the shared output format.
+SYSTEM_PROMPT_V1 = ASSESSOR_INSTRUCTIONS + OUTPUT_FORMAT
+
+
+# Version 2: two new rules, and every indicator named in the output format.
+RULES_V2 = """- Go through the 10 indicators one by one and check the whole report for each.
+  One sentence can show more than one indicator, but only if it really describes
+  each of them; never give a sentence to an indicator just to fill it in.
+- Before you answer, compare your summary with your labels. If the summary
+  mentions a risk (for example, the child is not in school or has no birth
+  certificate), the matching indicator must be present.
+"""
+
+OUTPUT_FORMAT_WITH_NAMES = """
+OUTPUT FORMAT:
+Return ONLY valid JSON. No Markdown, no explanations.
+Include all 10 indicators, in this order, exactly once, with these names:
+
+{
+  "case_id": "<the case ID you were given>",
+  "indicators": [
+    {"id": 1, "name": "Physical violence or injury", "present": false, "subtype": null, "quote": null},
+    {"id": 2, "name": "Sexual abuse or exploitation", "present": false, "subtype": null, "quote": null},
+    {"id": 3, "name": "Neglect", "present": false, "subtype": null, "quote": null},
+    {"id": 4, "name": "Child labour", "present": false, "subtype": null, "quote": null},
+    {"id": 5, "name": "Child marriage and harmful practices", "present": false, "subtype": null, "quote": null},
+    {"id": 6, "name": "Trafficking, separated child", "present": false, "subtype": null, "quote": null},
+    {"id": 7, "name": "Out of school", "present": false, "subtype": null, "quote": null},
+    {"id": 8, "name": "Unsafe or absent caregiver", "present": false, "subtype": null, "quote": null},
+    {"id": 9, "name": "Emotional distress", "present": false, "subtype": null, "quote": null},
+    {"id": 10, "name": "No legal identity, discrimination", "present": false, "subtype": null, "quote": null}
+  ],
+  "summary": "<one or two sentences for an officer>"
+}
+"""
+
+SYSTEM_PROMPT_V2 = ASSESSOR_INSTRUCTIONS + RULES_V2 + OUTPUT_FORMAT_WITH_NAMES
+
+
+# Version 3: version 2, but the summary rule now requires a quote.
+# (Version 2 marked indicators present without a quote, which broke the answer.)
+RULES_V3 = """- Go through the 10 indicators one by one and check the whole report for each.
+  One sentence can show more than one indicator, but only if it really describes
+  each of them; never give a sentence to an indicator just to fill it in.
+- Before you answer, compare your summary with your labels. If the summary
+  mentions a risk (for example, the child is not in school or has no birth
+  certificate), the matching indicator must be present, with a sentence from
+  the report as the quote.
+- "present": true always needs a quote. If you cannot copy a sentence from the
+  report that shows the indicator, it is not present.
+"""
+
+SYSTEM_PROMPT = ASSESSOR_INSTRUCTIONS + RULES_V3 + OUTPUT_FORMAT_WITH_NAMES
 
 
 # Variation A: role and indicator names only.
