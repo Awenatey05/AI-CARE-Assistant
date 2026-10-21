@@ -1,4 +1,4 @@
-"""Ingestion: read documents (PDF, Word, text) and clean the text.
+"""Ingestion: read documents (PDF, Word, text, Excel) and clean the text.
 
 The original file is never changed; these functions only return its text.
 Used for uploaded office documents and, later, the policy documents.
@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
+from openpyxl import load_workbook
 from pypdf import PdfReader
 
 
@@ -52,7 +54,32 @@ def read_docx(path: str | Path) -> str:
     return clean_text("\n".join(lines))
 
 
-# 4. CHOOSE THE READER FROM THE FILE TYPE
+# 4. EXCEL: ONE ROW PER CHILD
+MIN_FILLED_CELLS = 3  # titles, blank rows and footers have fewer filled cells than a real row
+
+
+def read_excel_rows(path: str | Path) -> list[dict[str, Any]]:
+    """Return the rows of the first sheet as dictionaries keyed by the column names.
+
+    The header is the first row with at least MIN_FILLED_CELLS filled cells;
+    rows above it (titles) and short rows below it (blank lines, footers) are skipped.
+    """
+    sheet = load_workbook(path, data_only=True).active
+    header: list[str] | None = None
+    rows = []
+    for values in sheet.iter_rows(values_only=True):
+        cells = [value.strip() if isinstance(value, str) else value for value in values]
+        filled = sum(cell not in (None, "") for cell in cells)
+        if filled < MIN_FILLED_CELLS:
+            continue
+        if header is None:
+            header = [str(cell) if cell is not None else f"column_{i}" for i, cell in enumerate(cells, 1)]
+        else:
+            rows.append(dict(zip(header, cells)))
+    return rows
+
+
+# 5. CHOOSE THE READER FROM THE FILE TYPE
 READERS = {".pdf": read_pdf, ".docx": read_docx}
 
 
