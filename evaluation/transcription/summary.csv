@@ -1,2 +1,3 @@
 model,english_recordings,english_mean_wer_%,english_worst_wer_%,english_wrongly_flagged,local_language_flagged,seconds_per_minute_of_audio
-base,10,25.1,62.6,0,2 of 2,5.2
+base,10,19.1,29.8,0,2 of 2,5.0
+small,10,14.3,31.2,0,2 of 2,33.5
