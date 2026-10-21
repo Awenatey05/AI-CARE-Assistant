@@ -32094,19 +32094,19 @@
       "id": 5,
       "subtype": null,
       "source": "document",
-      "quote": "they said the girl is a witch and that she caused the death"
+      "quote": "said the girl is a witch and that she caused her grandmothers death"
      },
      {
       "id": 7,
       "subtype": null,
       "source": "document",
-      "quote": "Since then, she has stopped going to school."
+      "quote": "since then, she has stopped going to school."
      },
      {
       "id": 9,
       "subtype": null,
       "source": "document",
-      "quote": "She told me she is afraid the people will hurt her, and she said she does not want to live again."
+      "quote": "She told me that she is afraid that the people will come and beat her and they will come and hurt her and she was crying and said she does not want to live again."
      }
     ],
     "score": 3,
@@ -32123,7 +32123,7 @@
   "note": "Video: ffmpeg extracts audio, Whisper transcribes. Critical (witchcraft accusation). 'does not want to live' should be flagged for urgent human attention.",
   "region": "northern",
   "year": 2026,
-  "reference_transcript": "Hello. My name is Fatima. I'm a child protection volunteer in our community, and the officer here at the district office said I can record this. Eh, it's about a girl, she's thirteen years. Last month her grandmother died, and some of the elders, they said the girl is a witch and that she caused the death. They beat the drum and chased her out of the house, in the night. Now she's staying with one old woman at the edge of the village. Since then, she has stopped going to school. When I went to see her on Monday, she was just crying. She told me she is afraid the people will hurt her, and she said she does not want to live again. Please, I'm begging, the office should come quickly. She's only a child. Thank you."
+  "reference_transcript": "Hello. My name is Fatima. I'm a community child protection. i am a community child protection volunteer in our community, and the officer here at the district office said I can record this. urm, it's about a girl, she's thirteen years.eh Last month her grandmother died, and some of the urm elders in the community said the girl is a witch and that she caused her grandmothers death. They then beat the drum and chased her out of the house,in the night, they chased her out of the house in the night. Now she's staying with an old woman at the edge of the village, the old woman decided to take her in and take care of her. But since then, she has stopped going to school. When I went to see her on Monday, she was just crying oo. She told me that she is afraid that the people will come and beat her and they will come and hurt her and she was crying and said she does not want to live again. She wants to die. Please, I'm begging,is there a way you people can come quickly and come and help her. She's only a child. Im very very worried about her Thank you."
  },
  "UP-2026-0011": {
   "id": "UP-2026-0011",
@@ -32144,7 +32144,7 @@
       "id": 4,
       "subtype": null,
       "source": "document",
-      "quote": "he now works at the stone quarry, breaking rocks with a hammer every day"
+      "quote": "he now works at the stone quarry, breaking rocks with hammer every day"
      },
      {
       "id": 7,
@@ -32163,6 +32163,6 @@
   "note": "Video. Low band. Distractor: kind, involved parents, so indicator 8 must NOT be present.",
   "region": "upper_west",
   "year": 2026,
-  "reference_transcript": "Good afternoon. I teach JHS 2 at the junior high school in our town, and I'm recording this for the social welfare office. There is one boy in my class, he's fourteen. He's a very good student, especially in science. But since the start of this term, he now works at the stone quarry, breaking rocks with a hammer every day. Last month he came to school only three days. I went to the house myself. His parents are kind people, they come to every PTA meeting, but they told me the family needs the money for food. I don't want us to lose him. Please, I'm asking the office to help him come back to school. Thank you."
+  "reference_transcript": "Good afternoon oo. I teach JHS 2 at the junior high school in our town, and I'm recording this for the social welfare office. This is very serious.There is one boy in my class, he's fourteen. He's a very very good student, especially in science. But since the start of this term, he now works at the stone quarry, breaking rocks with hammer every day.Ei Last month he came to school only three days. I personally went to the house myself. His parents are actually kind people, they come to every PTA meeting, but then, they are now telling me that the family needs the money for food. I don't want us to lose him like we have lost other children. Please, I'm asking the office to please come and help him come back to school. Thank you."
  }
 }
