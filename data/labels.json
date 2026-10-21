@@ -29614,7 +29614,7 @@
   "flags": [],
   "region": "upper_east",
   "year": 2025,
-  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Zuarungu, Bolgatanga Municipal. The caller asked for advice about school fees support; no safety concern was described. Meals are small because of the lean season, but the caregiver makes sure the children eat first. She was upset about losing a football match but otherwise seemed happy. Please, can someone come and check on her? Thank you."
+  "reference_transcript": "Hello, good morning. I live next to the family. I am calling about a 12-year-old girl in Zuarungu, Bolgatanga Municipal. I just wanted some advice. The child has been a bit quiet lately, but I have not seen anything bad happen. Meals are small because of the lean season, but the caregiver makes sure the children eat first. She was upset about losing a football match but otherwise seemed happy. Please, can someone come and check on her? Thank you."
  },
  "HL-2026-0075": {
   "id": "HL-2026-0075",
@@ -30966,5 +30966,1203 @@
   "year": 2026,
   "child_key": "Zenabu|Ayamga|Sumbrungu",
   "edge_note": "Interview in a local language; report is short. Assessed from answers and flagged for a human."
+ },
+ "UP-2026-0001": {
+  "id": "UP-2026-0001",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "referral_letter_savelugu.pdf",
+  "file_type": "pdf",
+  "children": [
+   {
+    "name": "Fuseini Abdulai",
+    "age": 12,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "His classmates report that he carries loads for traders at the Savelugu market as a head porter on weekdays."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "Since the beginning of the second term, Fuseini has been absent for 23 of the 41 school days."
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "Referral from a school. Rule-free document: the model must find both indicators in the letter.",
+  "region": "northern",
+  "year": 2026
+ },
+ "UP-2026-0002": {
+  "id": "UP-2026-0002",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "case_conference_bongo.pdf",
+  "file_type": "pdf",
+  "children": [
+   {
+    "name": "Asibi Azure",
+    "age": 14,
+    "sex": "female",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 5,
+      "subtype": null,
+      "source": "document",
+      "quote": "Her father confirmed that she has been promised in marriage to a 41-year-old farmer and that part of the bride price has been received."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "She was withdrawn from JHS 2 in March to prepare for the marriage."
+     },
+     {
+      "id": 9,
+      "subtype": null,
+      "source": "document",
+      "quote": "During the interview Asibi cried and said she is afraid and cannot sleep."
+     }
+    ],
+    "score": 3,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:5"
+    ],
+    "flags": []
+   }
+  ],
+  "note": "Critical (child marriage). Contains a table and section headings: tests PDF structure handling.",
+  "region": "upper_east",
+  "year": 2026
+ },
+ "UP-2026-0003": {
+  "id": "UP-2026-0003",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "medical_report_tamale.pdf",
+  "file_type": "pdf",
+  "children": [
+   {
+    "name": "Rashid Iddrisu",
+    "age": 9,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 1,
+      "subtype": null,
+      "source": "document",
+      "quote": "Examination showed several linear bruises on the back and legs, consistent with being beaten with a cable."
+     },
+     {
+      "id": 3,
+      "subtype": null,
+      "source": "document",
+      "quote": "He told the nurse he had not eaten since the previous morning."
+     },
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "document",
+      "quote": "His mother has been working in Kumasi since June and he lives with his uncle, who neighbours say drinks heavily."
+     }
+    ],
+    "score": 3,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:1"
+    ],
+    "flags": []
+   }
+  ],
+  "note": "Critical (physical violence). Contains two phone numbers and three names: tests masking.",
+  "region": "northern",
+  "year": 2026
+ },
+ "UP-2026-0004": {
+  "id": "UP-2026-0004",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "intake_note_walewale.docx",
+  "file_type": "docx",
+  "children": [
+   {
+    "name": "Mariama Salifu",
+    "age": 7,
+    "sex": "female",
+    "region": "north_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 3,
+      "subtype": null,
+      "source": "document",
+      "quote": "When Mariama had malaria in May, she was not taken to the clinic although the household had money from the cashew sale."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "Mariama has never been enrolled in school."
+     },
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "document",
+      "quote": "The grandmother reported that Mariama's mother left for Accra two years ago and has not returned or sent money."
+     }
+    ],
+    "score": 3,
+    "band": "Moderate",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "Moderate, no critical indicator. Neglect here is withheld care, not poverty.",
+  "region": "north_east",
+  "year": 2026
+ },
+ "UP-2026-0005": {
+  "id": "UP-2026-0005",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "followup_note_kete_krachi.docx",
+  "file_type": "docx",
+  "children": [
+   {
+    "name": "Abena Asante",
+    "age": 11,
+    "sex": "female",
+    "region": "oti",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 10,
+      "subtype": "a",
+      "source": "document",
+      "quote": "Abena still has no birth certificate; the family has not yet visited the registry."
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": [
+     "followup"
+    ]
+   }
+  ],
+  "note": "Improved follow-up. Distractors: Saturday market help is light work outside school hours, so indicator 4 must NOT be present.",
+  "region": "oti",
+  "year": 2026
+ },
+ "UP-2026-0006": {
+  "id": "UP-2026-0006",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "volunteer_statement_dambai.docx",
+  "file_type": "docx",
+  "children": [
+   {
+    "name": "Kwabena Owusu",
+    "age": 12,
+    "sex": "male",
+    "region": "oti",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "Instead, he works on a fishing canoe on the lake from early morning, pulling nets and diving to free them when they get stuck."
+     },
+     {
+      "id": 6,
+      "subtype": "a",
+      "source": "document",
+      "quote": "Kwabena told me that a man came to his village near Bawku and promised his father that he would go to school in Krachi."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "He has not been to school since he arrived about a year ago."
+     }
+    ],
+    "score": 3,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:6"
+    ],
+    "flags": []
+   }
+  ],
+  "note": "Critical (trafficking, 6a). Child from Upper East found in Oti: tests cross-region cases.",
+  "region": "oti",
+  "year": 2026
+ },
+ "UP-2026-0007": {
+  "id": "UP-2026-0007",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "attendance_register_kanvili.xlsx",
+  "file_type": "xlsx",
+  "children": [
+   {
+    "name": "Alhassan Mumuni",
+    "age": 11,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Sanatu Yakubu",
+    "age": 10,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Ibrahim Fuseini",
+    "age": 12,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "Often sleeps in class; says he breaks stones at the quarry in the evenings and at night."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Days absent: Sep 6, Oct 9"
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Ruka Abukari",
+    "age": 11,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Mohammed Issahaku",
+    "age": 11,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Zenabu Salifu",
+    "age": 10,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Days absent: Sep 5, Oct 7"
+     },
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "document",
+      "quote": "Mother says she must care for her baby brother."
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Kwame Mensah",
+    "age": 12,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Adisa Musah",
+    "age": 11,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Yakubu Seidu",
+    "age": 13,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "Carries loads at Tamale central market as a head porter on weekdays."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Days absent: Sep 8, Oct 10"
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Memunatu Alhassan",
+    "age": 10,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Rashid Mahama",
+    "age": 11,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Fati Iddrisu",
+    "age": 12,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Days absent: Sep 4, Oct 2"
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Joseph Azongo",
+    "age": 11,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Hawa Sumaila",
+    "age": 10,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Daniel Kuuire",
+    "age": 12,
+    "sex": "male",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "Table with 15 children. Indicator 7 is a numeric rule (4+ days absent in a month), so code should compute it, not the model. Remarks hold indicators 4 and 8. 'Missed two days with a cold' is a distractor.",
+  "region": "northern",
+  "year": 2026
+ },
+ "UP-2026-0008": {
+  "id": "UP-2026-0008",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "ccpc_log_builsa.xlsx",
+  "file_type": "xlsx",
+  "children": [
+   {
+    "name": "Atinga Ayamga",
+    "age": 9,
+    "sex": "male",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "document",
+      "quote": "Boy left alone for a week while both parents travelled to the gold mine; neighbours fed him."
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Apuri Akugre",
+    "age": 15,
+    "sex": "female",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 2,
+      "subtype": null,
+      "source": "document",
+      "quote": "Girl says an older man in the market gives her money and phone credit in exchange for sex."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:2"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Akanpoka Abagre",
+    "age": 13,
+    "sex": "female",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Ayamba Anaba",
+    "age": 11,
+    "sex": "male",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 1,
+      "subtype": null,
+      "source": "document",
+      "quote": "Boy has a deep cut on his hand; says his stepfather hit him with a machete handle."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:1"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Asibi Atanga",
+    "age": 16,
+    "sex": "female",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 5,
+      "subtype": null,
+      "source": "document",
+      "quote": "Girl was accused of witchcraft after her aunt died and was chased from the house; now sleeps at a friend's place."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:5"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Azure Apam",
+    "age": 8,
+    "sex": "male",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 10,
+      "subtype": "a",
+      "source": "document",
+      "quote": "Child has no birth certificate; mother asked how to register him."
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Abagre Atia",
+    "age": 14,
+    "sex": "male",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Lamisi Akolgo",
+    "age": 12,
+    "sex": "female",
+    "region": "upper_east",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 9,
+      "subtype": null,
+      "source": "document",
+      "quote": "Girl cries often, says she feels hopeless since her mother died and does not want to eat or play."
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "8 rows of free text, one child per row: the model labels each row. Rows 3 and 7 are distractors (no risk).",
+  "region": "upper_east",
+  "year": 2026
+ },
+ "UP-2026-0009": {
+  "id": "UP-2026-0009",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "field_round_2025_r2_west_gonja.xlsx",
+  "file_type": "xlsx",
+  "children": [
+   {
+    "name": "Mahama Abdulai",
+    "age": 11,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Fati Jakpa",
+    "age": 9,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 10,
+      "subtype": "a",
+      "source": "rules",
+      "quote": "Birth cert: N"
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Iddrisu Seidu",
+    "age": 14,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Type of work: Mining (galamsey)"
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "In school:  No"
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Ama Kanjarga",
+    "age": 13,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 5,
+      "subtype": null,
+      "source": "rules_and_remark",
+      "quote": "Married/promised: Yes",
+      "remark_quote": "Family says bride price has been agreed for after the next harvest."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:5"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Salifu Musah",
+    "age": 8,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Hawa Mumuni",
+    "age": 12,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Yakubu Bawa",
+    "age": 10,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 1,
+      "subtype": null,
+      "source": "rules_and_remark",
+      "quote": "Hurt by someone: Y",
+      "remark_quote": "Marks on his back; says his father beats him with a belt."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:1"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Zenabu Alhassan",
+    "age": 15,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 9,
+      "subtype": null,
+      "source": "rules_and_remark",
+      "quote": "Often sad/scared: Yes",
+      "remark_quote": "Cried through the interview; referred to the team leader the same day."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "self_harm"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Abu Sulemana",
+    "age": 7,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 3,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Cared for when sick: NO"
+     },
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Caregiver home most days: NO"
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Rashida Issah",
+    "age": 16,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "Came from Tamale on her own to sell water at the lorry station all day instead of school; sleeps there at night."
+     },
+     {
+      "id": 6,
+      "subtype": "b",
+      "source": "rules_and_remark",
+      "quote": "Lives with: Alone",
+      "remark_quote": "Came from Tamale on her own to sell water at the lorry station all day instead of school; sleeps there at night."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "In school: N"
+     },
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Caregiver home most days:  No"
+     }
+    ],
+    "score": 4,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:6"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Mohammed Adam",
+    "age": 12,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Days missed last month: 5"
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Adisa Zakaria",
+    "age": 6,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Seidu Jakpa",
+    "age": 13,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 10,
+      "subtype": "a",
+      "source": "rules_and_remark",
+      "quote": "Birth cert: no",
+      "remark_quote": "Orphan; eats only after the other children have finished."
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Memuna Abdulai",
+    "age": 11,
+    "sex": "female",
+    "region": "savannah",
+    "status": "not_scored_incomplete",
+    "indicators": [],
+    "score": null,
+    "band": null,
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": [
+     "incomplete_record"
+    ]
+   },
+   {
+    "name": "Kofi Asante",
+    "age": 14,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "rules",
+      "quote": "Type of work: Quarry"
+     }
+    ],
+    "score": 1,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Lamisi Fuseini",
+    "age": 10,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 8,
+      "subtype": null,
+      "source": "document",
+      "quote": "Mother's new partner shouted threats during the visit and the child hid behind the worker."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "worker_immediate_danger"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Ibrahim Tahiru",
+    "age": 9,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 2,
+      "subtype": null,
+      "source": "rules_and_remark",
+      "quote": "Unwanted touch: YES",
+      "remark_quote": "Says a man at the Arabic school touches him and tells him to keep quiet."
+     }
+    ],
+    "score": 1,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:2"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Gifty Bayor",
+    "age": 12,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   },
+   {
+    "name": "Alhassan Nuhu",
+    "age": 15,
+    "sex": "male",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "Brought from Bole to herd cattle for a herder all day instead of school; says he is not paid and cannot go home."
+     },
+     {
+      "id": 6,
+      "subtype": "a",
+      "source": "rules_and_remark",
+      "quote": "Brought from elsewhere to work: YES",
+      "remark_quote": "Brought from Bole to herd cattle for a herder all day instead of school; says he is not paid and cannot go home."
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "rules",
+      "quote": "In school: No"
+     }
+    ],
+    "score": 3,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:6"
+    ],
+    "flags": []
+   },
+   {
+    "name": "Rukaya Iddi",
+    "age": 13,
+    "sex": "female",
+    "region": "savannah",
+    "status": "assessed",
+    "indicators": [],
+    "score": 0,
+    "band": "No risk",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "Legacy field round typed into Excel by hand: the manual step the app replaces. 20 children. Answer columns use the same Python rules as Kobo after cleaning (Yes/Y/yes/YES, ages like '9yrs' or 'about 6', blank cells = not recorded). Remarks are read by the model. A row with 3+ blank answers is not scored. Distractors: farm work after school, fostering with an aunt, weekend help.",
+  "region": "savannah",
+  "year": 2026
+ },
+ "UP-2026-0010": {
+  "id": "UP-2026-0010",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "OFF-2026-V01.mp4",
+  "file_type": "video",
+  "children": [
+   {
+    "name": "(girl, name not given)",
+    "age": 13,
+    "sex": "female",
+    "region": "northern",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 5,
+      "subtype": null,
+      "source": "document",
+      "quote": "they said the girl is a witch and that she caused the death"
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "Since then, she has stopped going to school."
+     },
+     {
+      "id": 9,
+      "subtype": null,
+      "source": "document",
+      "quote": "She told me she is afraid the people will hurt her, and she said she does not want to live again."
+     }
+    ],
+    "score": 3,
+    "band": "High",
+    "alert": true,
+    "urgent_reasons": [
+     "critical_indicator:5"
+    ],
+    "flags": [
+     "self_harm_mentioned"
+    ]
+   }
+  ],
+  "note": "Video: ffmpeg extracts audio, Whisper transcribes. Critical (witchcraft accusation). 'does not want to live' should be flagged for urgent human attention.",
+  "region": "northern",
+  "year": 2026,
+  "reference_transcript": "Hello. My name is Fatima. I'm a child protection volunteer in our community, and the officer here at the district office said I can record this. Eh, it's about a girl, she's thirteen years. Last month her grandmother died, and some of the elders, they said the girl is a witch and that she caused the death. They beat the drum and chased her out of the house, in the night. Now she's staying with one old woman at the edge of the village. Since then, she has stopped going to school. When I went to see her on Monday, she was just crying. She told me she is afraid the people will hurt her, and she said she does not want to live again. Please, I'm begging, the office should come quickly. She's only a child. Thank you."
+ },
+ "UP-2026-0011": {
+  "id": "UP-2026-0011",
+  "channel": "upload",
+  "split": "upload",
+  "status": "assessed",
+  "file": "OFF-2026-V02.mp4",
+  "file_type": "video",
+  "children": [
+   {
+    "name": "(boy, name not given)",
+    "age": 14,
+    "sex": "male",
+    "region": "upper_west",
+    "status": "assessed",
+    "indicators": [
+     {
+      "id": 4,
+      "subtype": null,
+      "source": "document",
+      "quote": "he now works at the stone quarry, breaking rocks with a hammer every day"
+     },
+     {
+      "id": 7,
+      "subtype": null,
+      "source": "document",
+      "quote": "Last month he came to school only three days."
+     }
+    ],
+    "score": 2,
+    "band": "Low",
+    "alert": false,
+    "urgent_reasons": [],
+    "flags": []
+   }
+  ],
+  "note": "Video. Low band. Distractor: kind, involved parents, so indicator 8 must NOT be present.",
+  "region": "upper_west",
+  "year": 2026,
+  "reference_transcript": "Good afternoon. I teach JHS 2 at the junior high school in our town, and I'm recording this for the social welfare office. There is one boy in my class, he's fourteen. He's a very good student, especially in science. But since the start of this term, he now works at the stone quarry, breaking rocks with a hammer every day. Last month he came to school only three days. I went to the house myself. His parents are kind people, they come to every PTA meeting, but they told me the family needs the money for food. I don't want us to lose him. Please, I'm asking the office to help him come back to school. Thank you."
  }
 }
