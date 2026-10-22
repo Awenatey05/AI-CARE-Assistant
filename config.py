@@ -12,6 +12,11 @@ OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL")
 DATABASE_URL = os.getenv("DATABASE_URL")
 REDIS_URL = os.getenv("REDIS_URL")
 
+STORAGE_URL = os.getenv("STORAGE_URL")
+STORAGE_ACCESS_KEY = os.getenv("STORAGE_ACCESS_KEY")
+STORAGE_SECRET_KEY = os.getenv("STORAGE_SECRET_KEY")
+STORAGE_BUCKET = os.getenv("STORAGE_BUCKET", "aicare-originals")
+
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0"))
 
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
