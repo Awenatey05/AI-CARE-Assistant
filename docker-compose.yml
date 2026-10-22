@@ -1,6 +1,6 @@
 # =====================================================================
 # AI CARE Assistant
-# Postgres (with pgvector) + Redis
+# Postgres (with pgvector) + Redis + RustFS (S3 storage for originals)
 #
 #   docker compose up -d      # start
 #   docker compose ps         # check status
@@ -46,5 +46,35 @@ services:
     networks:
       - aicare_net
 
+  # RustFS: S3-compatible storage for the untouched originals
+  # (Kobo forms, call reports, recordings, uploaded files).
+  # MinIO stopped publishing its images in 2025; the app uses the standard S3
+  # interface, so this can be replaced by SeaweedFS or a paid store by config only.
+  rustfs:
+    image: rustfs/rustfs:1.0.3
+    container_name: aicare_rustfs
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "127.0.0.1:9000:9000"   # S3 interface used by the app
+      - "127.0.0.1:9001:9001"   # web console, to browse the stored files
+    volumes:
+      # A Docker volume (a real Linux disk inside Docker), not a Mac folder:
+      # RustFS saves files by renaming them, which a shared Mac folder does not support.
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - aicare_net
+
 networks:
   aicare_net:
+
+volumes:
+  rustfs_data:
