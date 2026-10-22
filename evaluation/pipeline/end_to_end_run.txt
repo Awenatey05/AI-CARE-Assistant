@@ -1,0 +1,42 @@
+END-TO-END RUN: Redis queue -> worker -> pipeline -> Postgres
+Run at: 2026-10-22 13:16:15
+
+JOBS PUT IN THE QUEUE:
+  1. Kobo field submission: a93f1b4c-419b-4d73-afcb-aa43ac90d96e
+  2. recorded helpline call (Whisper): HL-2025-0055
+  3. uploaded medical report (PDF): UP-2026-0003
+
+Queue before: {'waiting': 3, 'failed': 0}   Queue after: {'waiting': 0, 'failed': 0}
+
+WORKER LOG (as printed):
+  2026-10-22 13:15:51,342 INFO    field    NR-SGN-CHO-0001-2025     saved: High, alert (critical_indicator:6)
+  2026-10-22 13:16:06,379 INFO    helpline OT-NKWS-0001-2025        saved: Low
+  2026-10-22 13:16:14,610 INFO    upload   NR-TML-0001-2026         saved: High, alert (critical_indicator:1)
+
+SAVED IN POSTGRES (read back after the run):
+  arrived as a93f1b4c-419b-4d73-afcb-aa43ac90d96e
+    reference:  NR-SGN-CHO-0001-2025
+    channel:    field   region: northern   district: Sagnarigu   community: Choggu
+    status:     assessed   score: 3   band: High   alert: True ['critical_indicator:6']
+    flags:      -
+    indicators: 3 (answers), 6a (report), 10a (both)
+    alerts:     #63 open
+    child's name stored: yes (for follow-up);  name in the text the model read: no
+  arrived as HL-2025-0055
+    reference:  OT-NKWS-0001-2025
+    channel:    helpline   region: oti   district: Nkwanta South   community: -
+    status:     assessed   score: 1   band: Low   alert: False 
+    flags:      -
+    indicators: 3 (report)
+    alerts:     none
+    child's name stored: no;  name in the text the model read: no
+  arrived as UP-2026-0003
+    reference:  NR-TML-0001-2026
+    channel:    upload   region: northern   district: Tamale Metropolitan   community: -
+    status:     assessed   score: 3   band: High   alert: True ['critical_indicator:1']
+    flags:      -
+    indicators: 1 (report), 3 (report), 8 (report)
+    alerts:     #64 open
+    child's name stored: yes (for follow-up);  name in the text the model read: no
+
+No names, report text or quotes appear in the worker log above.
