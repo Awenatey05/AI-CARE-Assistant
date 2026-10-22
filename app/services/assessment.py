@@ -21,12 +21,14 @@ MAX_ATTEMPTS = 2  # first try + one retry
 
 
 def normalise(text: str) -> str:
-    """Collapse spaces and line breaks so a quote can be compared with the report."""
-    return re.sub(r"\s+", " ", text).strip()
+    """Collapse spaces and line breaks, and ignore upper/lower case, so a quote can be
+    compared with the report ("injuries are..." matches "Injuries are...")."""
+    return re.sub(r"\s+", " ", text).strip().casefold()
 
 
 def quote_in_text(quote: str, text: str) -> bool:
-    """A quote must appear in the text word for word (extra spaces or a missing final full stop are allowed)."""
+    """A quote must appear in the text word for word (extra spaces, a different capital
+    letter or a missing final full stop are allowed)."""
     quote, text = normalise(quote), normalise(text)
     return quote in text or quote.rstrip(".") in text
 

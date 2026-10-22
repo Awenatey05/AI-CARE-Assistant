@@ -46,6 +46,7 @@ def fake_model(monkeypatch, replies):
 def test_quote_in_text():
     assert quote_in_text(HIT, REPORT)
     assert quote_in_text("He has no  birth certificate and the family never registered his birth", REPORT)
+    assert quote_in_text("he said his stepmother hit him with a stick last week and his back is still swollen.", REPORT)
     assert not quote_in_text("His stepmother beat him every day.", REPORT)
 
 
@@ -87,3 +88,4 @@ def test_other_answer_quote_accepted(monkeypatch):
     other = "The girl was cut by an elder during the ceremony."
     fake_model(monkeypatch, [answer({5: (None, other)})])
     assert assess_case("case-1", REPORT, other_answer=other)["success"]
+
