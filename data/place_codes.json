@@ -1,0 +1,177 @@
+{
+ "regions": {
+  "ahafo": "AH",
+  "ashanti": "AS",
+  "bono": "BO",
+  "bono_east": "BE",
+  "central": "CR",
+  "eastern": "ER",
+  "greater_accra": "GA",
+  "north_east": "NE",
+  "northern": "NR",
+  "oti": "OT",
+  "savannah": "SV",
+  "upper_east": "UE",
+  "upper_west": "UW",
+  "volta": "VR",
+  "western": "WR",
+  "western_north": "WN"
+ },
+ "districts": {
+  "Bawku Municipal": "BWK",
+  "Bole": "BOL",
+  "Bolgatanga Municipal": "BLG",
+  "Bongo": "BNG",
+  "Builsa North": "BLSN",
+  "Builsa North/South": "BLS",
+  "Builsa South": "BLSS",
+  "Bunkpurugu-Nakpanduri": "BNK",
+  "Chereponi": "CHR",
+  "East Gonja": "GNJE",
+  "East Mamprusi": "MMPE",
+  "Jasikan": "JSK",
+  "Jirapa": "JRP",
+  "Kassena-Nankana": "KSS",
+  "Krachi East": "KRCE",
+  "Krachi West": "KRCW",
+  "Kumbungu": "KMB",
+  "Lawra": "LWR",
+  "Nandom": "NND",
+  "Nkwanta North": "NKWN",
+  "Nkwanta South": "NKWS",
+  "Sagnarigu": "SGN",
+  "Savelugu": "SVL",
+  "Sawla-Tuna-Kalba": "SWL",
+  "Sissala East": "SSSE",
+  "Tamale Metropolitan": "TML",
+  "Tolon": "TLN",
+  "Wa Municipal": "WA",
+  "West Gonja": "GNJW",
+  "West Mamprusi": "MMPW",
+  "Yendi": "YND"
+ },
+ "communities": {
+  "Bawku Municipal": {
+   "Bawku": "BAW"
+  },
+  "Bole": {
+   "Bole": "BOL",
+   "Mandari": "MAN"
+  },
+  "Bolgatanga Municipal": {
+   "Bolgatanga": "BOL",
+   "Sumbrungu": "SUM",
+   "Zuarungu": "ZUA"
+  },
+  "Bongo": {
+   "Bongo": "BON",
+   "Soe": "SOE"
+  },
+  "Builsa North": {
+   "Sandema": "SAN",
+   "Wiaga": "WIA"
+  },
+  "Builsa South": {
+   "Fumbisi": "FUM",
+   "Kadema": "KAD"
+  },
+  "Bunkpurugu-Nakpanduri": {
+   "Bunkpurugu": "BUN",
+   "Nakpanduri": "NAK"
+  },
+  "Chereponi": {
+   "Chereponi": "CHE",
+   "Wenchiki": "WEN"
+  },
+  "East Gonja": {
+   "Kpembe": "KPE",
+   "Salaga": "SAL"
+  },
+  "East Mamprusi": {
+   "Gambaga": "GAM",
+   "Nalerigu": "NAL"
+  },
+  "Jasikan": {
+   "Jasikan": "JAS"
+  },
+  "Jirapa": {
+   "Jirapa": "JIR",
+   "Ullo": "ULL"
+  },
+  "Kassena-Nankana": {
+   "Navrongo": "NAV",
+   "Paga": "PAG"
+  },
+  "Krachi East": {
+   "Dambai": "DAM"
+  },
+  "Krachi West": {
+   "Kete Krachi": "KET"
+  },
+  "Kumbungu": {
+   "Dalun": "DAL",
+   "Gbullung": "GBU",
+   "Kumbungu": "KUM"
+  },
+  "Lawra": {
+   "Babile": "BAB",
+   "Lawra": "LAW"
+  },
+  "Nandom": {
+   "Ko": "KO",
+   "Nandom": "NAN"
+  },
+  "Nkwanta North": {
+   "Kpassa": "KPA"
+  },
+  "Nkwanta South": {
+   "Nkwanta": "NKW"
+  },
+  "Sagnarigu": {
+   "Choggu": "CHO",
+   "Sagnarigu": "SAG"
+  },
+  "Savelugu": {
+   "Diare": "DIA",
+   "Pong-Tamale": "PON",
+   "Savelugu": "SAV"
+  },
+  "Sawla-Tuna-Kalba": {
+   "Kalba": "KAL",
+   "Sawla": "SAW",
+   "Tuna": "TUN"
+  },
+  "Sissala East": {
+   "Tumu": "TUM",
+   "Wellembelle": "WEL"
+  },
+  "Tamale Metropolitan": {
+   "Gumani": "GUM",
+   "Kanvili": "KAN",
+   "Kpalsi": "KPA",
+   "Zagyuri": "ZAG"
+  },
+  "Tolon": {
+   "Kasuliyili": "KAS",
+   "Nyankpala": "NYA",
+   "Tolon": "TOL"
+  },
+  "Wa Municipal": {
+   "Kperisi": "KPE",
+   "Wa": "WA"
+  },
+  "West Gonja": {
+   "Busunu": "BUS",
+   "Damongo": "DAM",
+   "Larabanga": "LAR"
+  },
+  "West Mamprusi": {
+   "Walewale": "WAL",
+   "Wulugu": "WUL"
+  },
+  "Yendi": {
+   "Gbungbaliga": "GBU",
+   "Yendi": "YEN"
+  }
+ }
+}
