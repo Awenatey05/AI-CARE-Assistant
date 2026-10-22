@@ -28,8 +28,9 @@ from app.services.pipeline import process_field_submission, process_helpline_cal
 # 1. LOGGING
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
 log = logging.getLogger("worker")
-# Presidio logs every recognizer it loads (about 45 lines); keep only its errors.
-for noisy in ("presidio-analyzer", "presidio-anonymizer"):
+# Presidio logs every recognizer it loads (about 45 lines), and Whisper and its
+# download library log every request; keep only their errors.
+for noisy in ("presidio-analyzer", "presidio-anonymizer", "faster_whisper", "httpx"):
     logging.getLogger(noisy).setLevel(logging.ERROR)
 
 
