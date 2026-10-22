@@ -89,6 +89,18 @@ def case_flags(answers: dict[str, str]) -> list[str]:
     return flags
 
 
+def score_without_form(indicators: list[dict[str, Any]],
+                       answers: dict[str, str] | None = None) -> dict[str, Any]:
+    """For helpline calls, uploaded documents and sheets: no Kobo form, so no consent or
+    completeness check. Score, band and urgent flags come from the indicators found;
+    answers typed into a sheet (immediate danger, self-harm) still raise urgent flags."""
+    reasons = urgent_flags(indicators, answers or {})
+    score = len({i["id"] for i in indicators})
+    return {"status": "assessed", "indicators": indicators, "score": score,
+            "band": band(score, bool(reasons)), "alert": bool(reasons),
+            "urgent_reasons": reasons, "flags": []}
+
+
 def score_case(answers: dict[str, str], indicators: list[dict[str, Any]]) -> dict[str, Any]:
     """Build the result for one case: status, score, band, alert, urgent_reasons, flags."""
     result: dict[str, Any] = {"status": "assessed", "indicators": indicators, "score": None, "band": None,
