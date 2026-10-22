@@ -8,7 +8,8 @@
   "district": "Savelugu",
   "uploaded_at": "2026-02-13T10:05:00",
   "uploaded_by_role": "office_staff",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Fuseini Abdulai"
  },
  {
   "upload_id": "UP-2026-0002",
@@ -19,7 +20,8 @@
   "district": "Bongo",
   "uploaded_at": "2026-04-10T14:20:00",
   "uploaded_by_role": "office_staff",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Asibi Azure"
  },
  {
   "upload_id": "UP-2026-0003",
@@ -30,7 +32,8 @@
   "district": "Tamale Metropolitan",
   "uploaded_at": "2026-08-03T16:40:00",
   "uploaded_by_role": "office_staff",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Rashid Iddrisu"
  },
  {
   "upload_id": "UP-2026-0004",
@@ -41,7 +44,8 @@
   "district": "West Mamprusi",
   "uploaded_at": "2026-05-21T11:15:00",
   "uploaded_by_role": "office_staff",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Mariama Salifu"
  },
  {
   "upload_id": "UP-2026-0005",
@@ -52,7 +56,8 @@
   "district": "Krachi West",
   "uploaded_at": "2026-10-06T15:00:00",
   "uploaded_by_role": "field_worker",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Abena Asante"
  },
  {
   "upload_id": "UP-2026-0006",
@@ -63,7 +68,8 @@
   "district": "Krachi East",
   "uploaded_at": "2026-07-15T09:30:00",
   "uploaded_by_role": "office_staff",
-  "channel": "upload"
+  "channel": "upload",
+  "child_name": "Kwabena Owusu"
  },
  {
   "upload_id": "UP-2026-0007",
@@ -108,7 +114,8 @@
   "uploaded_at": "2026-09-04T11:00:00",
   "uploaded_by_role": "office_staff",
   "channel": "upload",
-  "consent_to_record": "yes"
+  "consent_to_record": "yes",
+  "child_name": null
  },
  {
   "upload_id": "UP-2026-0011",
@@ -120,6 +127,7 @@
   "uploaded_at": "2026-09-18T15:30:00",
   "uploaded_by_role": "office_staff",
   "channel": "upload",
-  "consent_to_record": "yes"
+  "consent_to_record": "yes",
+  "child_name": null
  }
 ]
