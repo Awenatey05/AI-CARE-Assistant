@@ -63,3 +63,25 @@ CREATE TABLE IF NOT EXISTS alerts (
     confirmed_at      TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS alerts_open ON alerts (status) WHERE status = 'open';
+
+-- Readable case references, e.g. NR-TML-GUM-0012-2026 (app/services/case_ref.py).
+ALTER TABLE cases ADD COLUMN IF NOT EXISTS case_ref TEXT UNIQUE;
+
+-- Every place code in use. checked = FALSE: created automatically, not yet reviewed.
+CREATE TABLE IF NOT EXISTS place_codes (
+    kind      TEXT NOT NULL CHECK (kind IN ('region', 'district', 'community')),
+    name      TEXT NOT NULL,
+    district  TEXT NOT NULL DEFAULT '',          -- for communities: the district they are in
+    code      TEXT NOT NULL,
+    checked   BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (kind, name, district),
+    UNIQUE (kind, district, code)               -- no two places of a kind share a code (in a district)
+);
+
+-- The last number used per place and year.
+CREATE TABLE IF NOT EXISTS case_numbers (
+    place        TEXT NOT NULL,                 -- e.g. NR-TML-GUM
+    year         INTEGER NOT NULL,
+    last_number  INTEGER NOT NULL,
+    PRIMARY KEY (place, year)
+);

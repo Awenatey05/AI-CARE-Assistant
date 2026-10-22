@@ -13,8 +13,9 @@ from typing import Any
 import psycopg
 
 from app.core.db import connect
+from app.services.case_ref import case_reference
 
-CASE_COLUMNS = ["id", "channel", "source_id", "region", "district", "community", "child_name",
+CASE_COLUMNS = ["id", "case_ref", "channel", "source_id", "region", "district", "community", "child_name",
                 "status", "score", "band", "alert", "urgent_reasons", "flags", "summary",
                 "masked_text", "original_key", "received_at"]
 
@@ -29,7 +30,13 @@ def save_case(case: dict[str, Any], connection: psycopg.Connection | None = None
         values["urgent_reasons"] = values["urgent_reasons"] or []
         values["flags"] = values["flags"] or []
         values["alert"] = bool(values["alert"])
-        updates = ", ".join(f"{c} = EXCLUDED.{c}" for c in CASE_COLUMNS if c != "id")
+
+        # The readable reference is given once, on the first save, and never changed.
+        existing = connection.execute("SELECT case_ref FROM cases WHERE id = %s", (case["id"],)).fetchone()
+        values["case_ref"] = (existing and existing["case_ref"]) or case_reference(
+            connection, case.get("region"), case.get("district"), case.get("community"), case.get("received_at"))
+
+        updates = ", ".join(f"{c} = EXCLUDED.{c}" for c in CASE_COLUMNS if c not in ("id", "case_ref"))
         connection.execute(
             f"INSERT INTO cases ({', '.join(CASE_COLUMNS)}) "
             f"VALUES ({', '.join('%(' + c + ')s' for c in CASE_COLUMNS)}) "

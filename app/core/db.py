@@ -25,6 +25,10 @@ def connect() -> psycopg.Connection:
 
 
 def create_tables() -> None:
-    """Create the tables if they do not exist yet. Safe to run at every start."""
+    """Create the tables if they do not exist yet, and load the place codes.
+    Safe to run at every start: nothing is created twice and no code is changed."""
+    from app.services.case_ref import load_place_codes
+
     with psycopg.connect(DATABASE_URL) as connection:
         connection.execute(SCHEMA.read_text())
+        load_place_codes(connection)
