@@ -21,8 +21,9 @@ CASE_COLUMNS = ["id", "case_ref", "channel", "source_id", "region", "district", 
 
 
 # 1. SAVE
-def save_case(case: dict[str, Any], connection: psycopg.Connection | None = None) -> None:
-    """Insert or replace one case, its indicators, and open an alert if needed."""
+def save_case(case: dict[str, Any], connection: psycopg.Connection | None = None) -> str:
+    """Insert or replace one case, its indicators, and open an alert if needed.
+    Returns the case's readable reference (e.g. NR-TML-GUM-0012-2026)."""
     own = connection is None
     connection = connection or connect()
     try:
@@ -63,6 +64,7 @@ def save_case(case: dict[str, Any], connection: psycopg.Connection | None = None
                                    (case["id"], values["urgent_reasons"]))
         if own:
             connection.commit()
+        return values["case_ref"]
     finally:
         if own:
             connection.close()
