@@ -1,0 +1,19 @@
+STORAGE CHECK: RustFS 1.0.3 (S3 interface, boto3)
+Run at: 2026-10-22 16:40:08
+
+PROBLEM FOUND (first setup, files kept in a Mac folder ./data/rustfs):
+  - files of about 300 KB or more failed to save (InternalError), and deleting a file failed
+  - RustFS log: "rename rollback incomplete" - RustFS saves a file by writing it and then renaming it,
+    which a folder shared from macOS into the Linux container does not support
+  - tiny files worked only because RustFS keeps them inside its index file
+
+FIX:
+  - RustFS's files are kept in a Docker volume (rustfs_data), a real Linux disk inside Docker
+
+RESULT AFTER THE FIX (each file saved, read back, compared by SHA-256 fingerprint, deleted):
+  text                                           5 bytes   saved, read back identical: True, deleted   (0.02s)
+  1 MB                                   1,000,000 bytes   saved, read back identical: True, deleted   (0.04s)
+  6 MB                                   6,000,000 bytes   saved, read back identical: True, deleted   (0.12s)
+  recording HL-2025-0055.m4a               308,586 bytes   saved, read back identical: True, deleted   (0.02s)
+  document medical_report_tamale.pdf         2,708 bytes   saved, read back identical: True, deleted   (0.02s)
+  video OFF-2026-V02.mp4                18,877,106 bytes   saved, read back identical: True, deleted   (0.29s)
