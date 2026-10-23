@@ -1,0 +1,28 @@
+OFFICE API RUN: Streamlit (simulated) -> FastAPI (/helpline, /uploads) -> storage + queue -> worker -> Postgres
+Run at: 2026-10-23 01:43:49
+
+POST /helpline WITHOUT the API key -> HTTP 401 {'detail': 'Missing or wrong API key'}
+POST /helpline with a recording but NO consent -> HTTP 422 {'detail': "A recording needs the caller's consent"}
+POST /helpline (report of HL-2025-0099 + its recording, with consent) -> HTTP 202 {'status': 'queued', 'report_id': 'HL-2026-900434dc', 'job_id': '94ac073b-b2fa-47f7-b93d-c0c3c5b776ec'}  in 0.04 s
+POST /uploads (volunteer_statement_dambai.docx) -> HTTP 202 {'status': 'queued', 'upload_id': 'UP-2026-95d8b578', 'job_id': '948ca054-ef45-41ea-9218-9860d6d02c8f'}  in 0.01 s
+
+Queue after the API answered: {'waiting': 2, 'failed': 0}
+
+WORKER LOG:
+  2026-10-23 01:44:23,349 INFO    helpline SV-SWL-0001-2026         saved: High, alert (critical_indicator:6)
+  2026-10-23 01:44:31,988 INFO    upload   OT-KRCE-0002-2026        saved: High, alert (critical_indicator:6)
+
+SAVED IN POSTGRES AND STORAGE:
+  HL-2026-900434dc -> reference SV-SWL-0001-2026
+    helpline  savannah / Sawla-Tuna-Kalba   status assessed   band High   alert True ['critical_indicator:6']
+    indicators: 3 (report), 4 (report), 6b (report), 7 (report), 9 (report), 10a (report)
+    original in storage: helpline/HL-2026-900434dc.json (exists: True)
+    child's name in the text the model read: no
+  UP-2026-95d8b578 -> reference OT-KRCE-0002-2026
+    upload  oti / Krachi East   status assessed   band High   alert True ['critical_indicator:6']
+    indicators: 4 (report), 6b (report), 7 (report)
+    original in storage: uploads/UP-2026-95d8b578/volunteer_statement_dambai.docx (exists: True)
+    child's name in the text the model read: no
+  recording in storage: helpline/HL-2026-900434dc.m4a (exists: True)
+
+The API key was read from .env and is not shown here.
