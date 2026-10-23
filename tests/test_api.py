@@ -144,3 +144,54 @@ def test_bad_uploads_refused(office_api, filename, document_type):
     response = client.post("/uploads", data={"region": "oti", "district": "x", "document_type": document_type},
                            files={"file": (filename, content)}, headers=KEY)
     assert response.status_code == 422 and received == []
+
+
+# ------------------------------------------------
+# Alerts for the dashboard
+# ------------------------------------------------
+
+from app.api import alerts  # noqa: E402
+
+
+@pytest.fixture
+def alerts_api(monkeypatch):
+    confirmed = []
+    monkeypatch.setattr(office, "API_KEY", "test-key")
+    monkeypatch.setattr(alerts.notifier, "open_alerts",
+                        lambda region: [{"id": 7, "case_ref": "NR-TML-GUM-0001-2026", "region": region}])
+    monkeypatch.setattr(alerts.notifier, "confirm",
+                        lambda alert_id, by: alert_id == 7 and not confirmed.append((alert_id, by)))
+    return TestClient(main.app), confirmed
+
+
+def test_open_alerts_listed_for_a_region(alerts_api):
+    client, _ = alerts_api
+    response = client.get("/alerts", params={"region": "Northern"}, headers=KEY)
+    assert response.status_code == 200 and response.json()[0]["region"] == "northern"
+
+
+def test_alerts_need_the_api_key(alerts_api):
+    client, confirmed = alerts_api
+    assert client.get("/alerts").status_code == 401
+    assert client.post("/alerts/7/confirm", json={"confirmed_by": "Team leader"}).status_code == 401
+    assert confirmed == []
+
+
+def test_confirm_an_alert(alerts_api):
+    client, confirmed = alerts_api
+    response = client.post("/alerts/7/confirm", json={"confirmed_by": "Team leader"}, headers=KEY)
+    assert response.status_code == 200 and confirmed == [(7, "Team leader")]
+
+
+def test_confirm_unknown_or_without_a_name(alerts_api):
+    client, _ = alerts_api
+    assert client.post("/alerts/99/confirm", json={"confirmed_by": "Team leader"}, headers=KEY).status_code == 404
+    assert client.post("/alerts/7/confirm", json={"confirmed_by": ""}, headers=KEY).status_code == 422
+
+
+def test_alerts_database_down_gives_503(alerts_api, monkeypatch):
+    client, _ = alerts_api
+    def down(region):
+        raise ConnectionError("Postgres is not running")
+    monkeypatch.setattr(alerts.notifier, "open_alerts", down)
+    assert client.get("/alerts", headers=KEY).status_code == 503
