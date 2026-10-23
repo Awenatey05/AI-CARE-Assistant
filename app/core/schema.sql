@@ -64,6 +64,12 @@ CREATE TABLE IF NOT EXISTS alerts (
 );
 CREATE INDEX IF NOT EXISTS alerts_open ON alerts (status) WHERE status = 'open';
 
+-- urgent: an urgent flag; escalates until confirmed.
+-- review: a "could not assess" case waiting for a person; low priority, never escalates.
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS priority TEXT NOT NULL DEFAULT 'urgent'
+    CHECK (priority IN ('urgent', 'review'));
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS notified_at TIMESTAMPTZ;   -- when the notifier last sent it
+
 -- Readable case references, e.g. NR-TML-GUM-0012-2026 (app/services/case_ref.py).
 ALTER TABLE cases ADD COLUMN IF NOT EXISTS case_ref TEXT UNIQUE;
 
