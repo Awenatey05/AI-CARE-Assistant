@@ -8,10 +8,13 @@ to the model or the database directly.
 
 from __future__ import annotations
 
+import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
 from app.rag.loaders import read_document, read_excel_rows
+from app.services import storage
 from app.services.assessment import assess_case, present_indicators
 from collections import Counter
 
@@ -56,6 +59,17 @@ def could_not_assess(base: dict[str, Any], rule_found: list[dict[str, Any]],
             "flags": base.get("flags", []) + [f"model_failed: {result['error']}"]}
 
 
+@contextmanager
+def local_copy(key: str | None, fallback: Path):
+    """The file to process: a temporary copy of the original in storage (deleted
+    afterwards), or the local file when the job names no stored original."""
+    if not key:
+        yield fallback
+        return
+    with tempfile.TemporaryDirectory() as folder:
+        yield storage.download_to(key, folder)
+
+
 # 2. A KOBO FIELD SUBMISSION
 def process_field_submission(submission: dict[str, Any], original_key: str | None = None) -> dict[str, Any]:
     answers = read_answers(submission)
@@ -93,7 +107,8 @@ def process_helpline_call(call: dict[str, Any], recordings_dir: str | Path = "da
 
     text, flags = call["report_text"], []
     if call.get("recording_file"):
-        heard = transcribe(Path(recordings_dir) / call["recording_file"])
+        with local_copy(call.get("recording_key"), Path(recordings_dir) / call["recording_file"]) as recording:
+            heard = transcribe(recording)
         if heard["needs_human"]:
             flags.append("needs_transcription")      # assessed from the officer's summary only
         else:
@@ -105,7 +120,11 @@ def process_helpline_call(call: dict[str, Any], recordings_dir: str | Path = "da
 def process_upload(entry: dict[str, Any], uploads_dir: str | Path = "data/uploads",
                    original_key: str | None = None) -> list[dict[str, Any]]:
     """Returns a list, because a sheet can hold many children (one case per row)."""
-    path = Path(uploads_dir) / entry["file"]
+    with local_copy(entry.get("file_key"), Path(uploads_dir) / entry["file"]) as path:
+        return process_upload_file(entry, path, original_key)
+
+
+def process_upload_file(entry: dict[str, Any], path: Path, original_key: str | None) -> list[dict[str, Any]]:
     child_name = entry.get("child_name")
     base = {"id": entry["upload_id"], "channel": "upload", "source_id": entry["upload_id"],
             "region": entry.get("region"), "district": entry.get("district"),
