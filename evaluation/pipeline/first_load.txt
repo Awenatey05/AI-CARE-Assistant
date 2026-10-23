@@ -1,0 +1,89 @@
+FIRST LOAD: data -> intake (storage + queue) -> worker -> Postgres
+Started 2026-10-23 00:54:08, finished 01:02:14 (8 min 6 s)
+
+LOADING SCRIPT OUTPUT:
+  Queued: {'field': 3, 'helpline': 8, 'upload': 10} (21 jobs); skipped 5 already in the database
+  Queue now: {'waiting': 21, 'failed': 0}
+  At about 9 s per case, the worker needs roughly 3 minutes (sheets hold several children each).
+
+ORIGINALS IN STORAGE (bucket aicare-originals): 22 files
+
+WORKER LOG:
+  2026-10-23 00:54:22,264 INFO    field    OT-NKWN-KPA-0001-2025    saved: High, alert (critical_indicator:6)
+  2026-10-23 00:54:29,375 INFO    field    NR-KMB-KUM-0001-2025     saved: No risk
+  2026-10-23 00:54:36,649 INFO    field    UE-BLG-SUM-0001-2025     saved: No risk
+  2026-10-23 00:54:43,392 INFO    helpline NE-CHR-0001-2025         saved: No risk
+  2026-10-23 00:55:03,258 INFO    helpline UW-NND-0001-2025         saved: could_not_assess
+  2026-10-23 00:55:13,567 INFO    helpline UW-LWR-0001-2026         saved: High, alert (critical_indicator:1,6)
+  2026-10-23 00:55:29,513 INFO    helpline SV-GNJW-0002-2026        saved: could_not_assess
+  2026-10-23 00:55:46,485 INFO    helpline NE-MMPE-0001-2025        saved: could_not_assess
+  2026-10-23 00:56:02,155 INFO    helpline UE-BLSN-0001-2026        saved: could_not_assess
+  2026-10-23 00:56:12,109 INFO    helpline NE-MMPE-0002-2025        saved: High, alert (critical_indicator:1,6)
+  2026-10-23 00:56:44,677 INFO    helpline OT-NKWN-0001-2025        saved: Moderate
+  2026-10-23 00:57:02,933 INFO    upload   NR-SVL-0002-2026         saved: could_not_assess
+  2026-10-23 00:57:19,443 INFO    upload   UE-BNG-0001-2026         saved: could_not_assess
+  2026-10-23 00:57:27,058 INFO    upload   NE-MMPW-0001-2026        saved: Low
+  2026-10-23 00:57:34,858 INFO    upload   OT-KRCW-0001-2026        saved: Low
+  2026-10-23 00:57:43,755 INFO    upload   OT-KRCE-0001-2026        saved: High, alert (critical_indicator:6)
+  2026-10-23 00:58:18,668 INFO    upload   NR-TML-0002-2026         saved: No risk
+  2026-10-23 00:58:18,701 INFO    upload   NR-TML-0003-2026         saved: No risk
+  2026-10-23 00:58:18,730 INFO    upload   NR-TML-0004-2026         saved: could_not_assess
+  2026-10-23 00:58:18,758 INFO    upload   NR-TML-0005-2026         saved: No risk
+  2026-10-23 00:58:18,789 INFO    upload   NR-TML-0006-2026         saved: No risk
+  2026-10-23 00:58:18,814 INFO    upload   NR-TML-0007-2026         saved: Low
+  2026-10-23 00:58:18,836 INFO    upload   NR-TML-0008-2026         saved: No risk
+  2026-10-23 00:58:18,856 INFO    upload   NR-TML-0009-2026         saved: No risk
+  2026-10-23 00:58:18,882 INFO    upload   NR-TML-0010-2026         saved: Low
+  2026-10-23 00:58:18,901 INFO    upload   NR-TML-0011-2026         saved: No risk
+  2026-10-23 00:58:18,917 INFO    upload   NR-TML-0012-2026         saved: No risk
+  2026-10-23 00:58:18,935 INFO    upload   NR-TML-0013-2026         saved: Low
+  2026-10-23 00:58:18,953 INFO    upload   NR-TML-0014-2026         saved: No risk
+  2026-10-23 00:58:18,970 INFO    upload   NR-TML-0015-2026         saved: No risk
+  2026-10-23 00:58:18,987 INFO    upload   NR-TML-0016-2026         saved: No risk
+  2026-10-23 00:59:15,557 INFO    upload   UE-BLS-WIA-0001-2026     saved: Low
+  2026-10-23 00:59:15,604 INFO    upload   UE-BLS-SAN-0001-2026     saved: High, alert (critical_indicator:2)
+  2026-10-23 00:59:15,634 INFO    upload   UE-BLS-WIA-0002-2026     saved: No risk
+  2026-10-23 00:59:15,666 INFO    upload   UE-BLS-FUM-0001-2026     saved: High, alert (critical_indicator:1)
+  2026-10-23 00:59:15,688 INFO    upload   UE-BLS-KAD-0001-2026     saved: No risk
+  2026-10-23 00:59:15,711 INFO    upload   UE-BLS-SAN-0002-2026     saved: High, alert (critical_indicator:6)
+  2026-10-23 00:59:15,733 INFO    upload   UE-BLS-WIA-0003-2026     saved: Low
+  2026-10-23 00:59:15,755 INFO    upload   UE-BLS-FUM-0002-2026     saved: Low
+  2026-10-23 01:00:56,696 INFO    upload   SV-GNJW-DAM-0001-2026    saved: No risk
+  2026-10-23 01:00:56,730 INFO    upload   SV-GNJW-DAM-0002-2026    saved: Low
+  2026-10-23 01:00:56,759 INFO    upload   SV-GNJW-LAR-0001-2026    saved: Low
+  2026-10-23 01:00:56,786 INFO    upload   SV-GNJW-BUS-0001-2026    saved: High, alert (critical_indicator:5)
+  2026-10-23 01:00:56,811 INFO    upload   SV-GNJW-DAM-0003-2026    saved: Low
+  2026-10-23 01:00:56,835 INFO    upload   SV-GNJW-DAM-0004-2026    saved: No risk
+  2026-10-23 01:00:56,861 INFO    upload   SV-GNJW-SOR-0001-2026    saved: High, alert (critical_indicator:1)
+  2026-10-23 01:00:56,884 INFO    upload   SV-GNJW-LAR-0002-2026    saved: High, alert (self_harm)
+  2026-10-23 01:00:56,905 INFO    upload   SV-GNJW-BUS-0002-2026    saved: Low
+  2026-10-23 01:00:56,925 INFO    upload   SV-GNJW-DAM-0005-2026    saved: could_not_assess, alert (critical_indicator:6)
+  2026-10-23 01:00:56,944 INFO    upload   SV-GNJW-SOR-0002-2026    saved: Low
+  2026-10-23 01:00:56,964 INFO    upload   SV-GNJW-LAR-0003-2026    saved: No risk
+  2026-10-23 01:00:56,987 INFO    upload   SV-GNJW-BUS-0003-2026    saved: Low
+  2026-10-23 01:00:57,004 INFO    upload   SV-GNJW-DAM-0006-2026    saved: not_scored_incomplete
+  2026-10-23 01:00:57,022 INFO    upload   SV-GNJW-DAM-0007-2026    saved: Low
+  2026-10-23 01:00:57,041 INFO    upload   SV-GNJW-SOR-0003-2026    saved: High, alert (critical_indicator:1, worker_immediate_danger)
+  2026-10-23 01:00:57,060 INFO    upload   SV-GNJW-LAR-0004-2026    saved: High, alert (critical_indicator:1,2)
+  2026-10-23 01:00:57,075 INFO    upload   SV-GNJW-DAM-0008-2026    saved: No risk
+  2026-10-23 01:00:57,096 INFO    upload   SV-GNJW-BUS-0004-2026    saved: High, alert (critical_indicator:6)
+  2026-10-23 01:00:57,113 INFO    upload   SV-GNJW-LAR-0005-2026    saved: No risk
+  2026-10-23 01:01:39,670 INFO    upload   NR-YND-0001-2026         saved: could_not_assess
+  2026-10-23 01:02:12,765 INFO    upload   UW-WA-0001-2026          saved: could_not_assess
+
+IN POSTGRES AFTERWARDS: 67 cases (61 with their original in storage), 18 open alerts
+  channel   outcome                 cases
+  field     High                       3
+  field     No risk                    2
+  helpline  could_not_assess           4
+  helpline  High                       3
+  helpline  Low                        1
+  helpline  Moderate                   1
+  helpline  No risk                    2
+  upload    could_not_assess           6
+  upload    High                      11
+  upload    Low                       15
+  upload    No risk                   18
+  upload    not_scored_incomplete      1
+
+Queue at the end: {'waiting': 0, 'failed': 0}
