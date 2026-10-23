@@ -1,0 +1,23 @@
+API RUN: Kobo -> FastAPI (/kobo) -> storage + queue -> worker -> Postgres
+Run at: 2026-10-23 01:36:05
+
+GET /health -> HTTP 200 {'status': 'ok', 'postgres': True, 'redis': True, 'storage': True, 'ollama': True}
+
+POST /kobo WITHOUT the secret -> HTTP 401 {'detail': 'Missing or wrong webhook secret'}
+POST /kobo with a WRONG secret -> HTTP 401 {'detail': 'Missing or wrong webhook secret'}
+POST /kobo with no case_uuid -> HTTP 422 {'detail': 'Submission has no case_uuid'}
+POST /kobo with the right secret (case 8e89c9ef-d6b9-49e3-bc03-8e8b199215b6) -> HTTP 202 {'status': 'queued', 'job_id': '7e2abead-c135-484a-8d5d-8d292d464639'}
+  answered in 0.02 s, before any processing
+
+Queue after the API answered: {'waiting': 1, 'failed': 0}
+
+WORKER LOG:
+  2026-10-23 01:36:20,404 INFO    field    NR-SGN-SAG-0001-2025     saved: High, alert (critical_indicator:1,6)
+
+SAVED IN POSTGRES:
+  arrived as 8e89c9ef-d6b9-49e3-bc03-8e8b199215b6 -> reference NR-SGN-SAG-0001-2025
+  northern / Sagnarigu / Sagnarigu   status assessed   band High   alert True ['critical_indicator:1,6']
+  indicators: 1 (report), 3 (both), 4 (both), 6b (report), 7 (both), 8 (both), 9 (report), 10a (both)
+  original in storage: field/8e89c9ef-d6b9-49e3-bc03-8e8b199215b6.json
+
+The webhook secret was read from .env and is not shown here.
