@@ -1,0 +1,167 @@
+ALERTS RUN: worker -> notifier -> team leader / supervisor -> escalation -> confirmed in the dashboard API
+Run at: 2026-10-23 09:45:45
+ALERT_ESCALATE_HOURS = 0.02 for this run only (about 1.2 minutes); the real setting stays 24 hours
+
+1. Review notices added for 9 'could not assess' cases saved before Stage 6 (same rule as case_store.py; urgent cases keep their urgent alert)
+   Alerts before the worker starts: 9 review open, 21 urgent open
+
+2. API and worker started. GET /health -> {'status': 'ok', 'postgres': True, 'redis': True, 'storage': True, 'ollama': True}
+
+3. POST /kobo (new case b6344336-109a-4ecf-a20a-accbe329fd85) -> HTTP 202 {'status': 'queued', 'job_id': 'd608ced8-9848-4b65-9d6b-42ffa19b7b1e'}
+   Saved and alerted after 25 s: NE-MMPW-WUL-0001-2025, band High, reasons ['critical_indicator:1,5'], priority urgent, level 0, status open
+
+4. Not confirmed: escalated after 147 s to level 1 (team leader, regional supervisor and national lead)
+
+5. GET /alerts?region=north_east -> 3 open alerts, urgent first:
+     urgent  level 443   NE-MMPE-0002-2025        critical_indicator:1,6
+     urgent  level 1     NE-MMPW-WUL-0001-2025    critical_indicator:1,5   <- this run's case
+     review  level 0     NE-MMPE-0001-2025        could_not_assess
+   POST /alerts/251/confirm WITHOUT the API key -> HTTP 401 {'detail': 'Missing or wrong API key'}
+   POST /alerts/251/confirm with the API key -> HTTP 200 {'status': 'confirmed', 'alert_id': 251}
+   the same again -> HTTP 404 {'detail': 'No open alert with this id'}
+
+6. 150 s later (more than two escalation periods): status confirmed, confirmed by 'Team leader (demo)' at 09:48:20, level still 1 (was 1 when confirmed)
+
+7. NOTIFIER LOG (132 messages):
+   2026-10-23 09:45:51,665 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 0 -> team leader, regional supervisor: critical_indicator:1
+   2026-10-23 09:45:51,667 WARNING ALERT NR-SVL-0001-2026 (northern) level 0 -> team leader, regional supervisor: critical_indicator:1
+   2026-10-23 09:45:51,667 WARNING ALERT NR-SGN-CHO-0001-2025 (northern) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,668 WARNING ALERT NR-TML-0001-2026 (northern) level 0 -> team leader, regional supervisor: critical_indicator:1
+   2026-10-23 09:45:51,668 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,669 WARNING ALERT UW-LWR-0001-2026 (upper_west) level 0 -> team leader, regional supervisor: critical_indicator:1,6
+   2026-10-23 09:45:51,670 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 0 -> team leader, regional supervisor: critical_indicator:1,6
+   2026-10-23 09:45:51,670 WARNING ALERT OT-KRCE-0001-2026 (oti) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,671 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 0 -> team leader, regional supervisor: critical_indicator:2
+   2026-10-23 09:45:51,672 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 0 -> team leader, regional supervisor: critical_indicator:1
+   2026-10-23 09:45:51,672 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,673 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:5
+   2026-10-23 09:45:51,673 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:1
+   2026-10-23 09:45:51,674 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 0 -> team leader, regional supervisor: self_harm
+   2026-10-23 09:45:51,674 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,675 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:45:51,675 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:1,2
+   2026-10-23 09:45:51,675 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,676 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 0 -> team leader, regional supervisor: critical_indicator:1,6
+   2026-10-23 09:45:51,676 WARNING ALERT SV-SWL-0001-2026 (savannah) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,677 WARNING ALERT OT-KRCE-0002-2026 (oti) level 0 -> team leader, regional supervisor: critical_indicator:6
+   2026-10-23 09:45:51,677 WARNING REVIEW UE-BLSN-0001-2026 (upper_east) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,678 WARNING REVIEW NR-TML-0004-2026 (northern) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,678 WARNING REVIEW UW-NND-0001-2025 (upper_west) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,679 WARNING REVIEW UE-BNG-0001-2026 (upper_east) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,679 WARNING REVIEW NR-YND-0001-2026 (northern) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,679 WARNING REVIEW UW-WA-0001-2026 (upper_west) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,680 WARNING REVIEW NR-SVL-0002-2026 (northern) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,680 WARNING REVIEW SV-GNJW-0002-2026 (savannah) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,681 WARNING REVIEW NE-MMPE-0001-2025 (north_east) level 0 -> team leader, regional supervisor: could_not_assess
+   2026-10-23 09:45:51,703 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 1035 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:45:51,704 WARNING ALERT NR-SVL-0001-2026 (northern) level 1035 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:45:51,704 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 442 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,705 WARNING ALERT NR-SGN-CHO-0001-2025 (northern) level 1025 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,705 WARNING ALERT NR-TML-0001-2026 (northern) level 1024 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:45:51,705 WARNING ALERT UW-LWR-0001-2026 (upper_west) level 442 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:45:51,706 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 441 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:45:51,706 WARNING ALERT OT-KRCE-0001-2026 (oti) level 440 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,707 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 438 -> team leader, regional supervisor, national lead: critical_indicator:2
+   2026-10-23 09:45:51,707 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 438 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:45:51,707 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 438 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,708 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:5
+   2026-10-23 09:45:51,708 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:45:51,708 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: self_harm
+   2026-10-23 09:45:51,709 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,709 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:45:51,709 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:1,2
+   2026-10-23 09:45:51,710 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 437 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,710 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 407 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:45:51,710 WARNING ALERT SV-SWL-0001-2026 (savannah) level 401 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:45:51,710 WARNING ALERT OT-KRCE-0002-2026 (oti) level 401 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:46:16,375 WARNING ALERT NE-MMPW-WUL-0001-2025 (north_east) level 0 -> team leader, regional supervisor: critical_indicator:1,5
+   2026-10-23 09:46:16,398 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 1036 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:46:16,399 WARNING ALERT NR-SVL-0001-2026 (northern) level 1036 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:46:16,399 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 443 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:46:16,400 WARNING ALERT NR-TML-0001-2026 (northern) level 1025 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:46:16,400 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 439 -> team leader, regional supervisor, national lead: critical_indicator:2
+   2026-10-23 09:46:16,400 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 439 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:46:16,401 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 439 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:46:16,402 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 408 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:47:17,469 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 1037 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:47:17,470 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 444 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,471 WARNING ALERT NR-SGN-CHO-0001-2025 (northern) level 1026 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,471 WARNING ALERT UW-LWR-0001-2026 (upper_west) level 443 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:47:17,472 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 442 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:47:17,472 WARNING ALERT OT-KRCE-0001-2026 (oti) level 441 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,473 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 440 -> team leader, regional supervisor, national lead: critical_indicator:2
+   2026-10-23 09:47:17,474 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 440 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:47:17,474 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 440 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,474 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:5
+   2026-10-23 09:47:17,475 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:47:17,475 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: self_harm
+   2026-10-23 09:47:17,476 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,476 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:47:17,476 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:1,2
+   2026-10-23 09:47:17,477 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 438 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,477 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 409 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:47:17,477 WARNING ALERT SV-SWL-0001-2026 (savannah) level 402 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:47:17,478 WARNING ALERT OT-KRCE-0002-2026 (oti) level 402 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,617 WARNING ALERT NR-SVL-0001-2026 (northern) level 1037 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:48:18,619 WARNING ALERT NR-SGN-CHO-0001-2025 (northern) level 1027 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,620 WARNING ALERT NR-TML-0001-2026 (northern) level 1026 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:48:18,620 WARNING ALERT UW-LWR-0001-2026 (upper_west) level 444 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:48:18,621 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 443 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:48:18,621 WARNING ALERT OT-KRCE-0001-2026 (oti) level 442 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,622 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:5
+   2026-10-23 09:48:18,622 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:48:18,623 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: self_harm
+   2026-10-23 09:48:18,623 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,623 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:48:18,624 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:1,2
+   2026-10-23 09:48:18,624 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 439 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,625 WARNING ALERT SV-SWL-0001-2026 (savannah) level 403 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,625 WARNING ALERT OT-KRCE-0002-2026 (oti) level 403 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:48:18,625 WARNING ALERT NE-MMPW-WUL-0001-2025 (north_east) level 1 -> team leader, regional supervisor, national lead: critical_indicator:1,5
+   2026-10-23 09:49:19,894 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 1038 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:49:19,896 WARNING ALERT NR-SVL-0001-2026 (northern) level 1038 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:49:19,896 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 445 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:49:19,897 WARNING ALERT NR-TML-0001-2026 (northern) level 1027 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:49:19,897 WARNING ALERT UW-LWR-0001-2026 (upper_west) level 445 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:49:19,898 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 444 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:49:19,899 WARNING ALERT OT-KRCE-0001-2026 (oti) level 443 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:49:19,899 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 441 -> team leader, regional supervisor, national lead: critical_indicator:2
+   2026-10-23 09:49:19,900 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 441 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:49:19,900 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 441 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:49:19,900 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:5
+   2026-10-23 09:49:19,901 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:49:19,901 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: self_harm
+   2026-10-23 09:49:19,901 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:49:19,902 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:49:19,902 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:1,2
+   2026-10-23 09:49:19,903 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 440 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:49:19,903 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 410 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:49:19,903 WARNING ALERT SV-SWL-0001-2026 (savannah) level 404 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,816 WARNING ALERT OT-NKWS-NKW-0001-2025 (oti) level 1039 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:50:20,817 WARNING ALERT NR-SVL-0001-2026 (northern) level 1039 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:50:20,818 WARNING ALERT OT-NKWN-KPA-0001-2025 (oti) level 446 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,818 WARNING ALERT NR-SGN-CHO-0001-2025 (northern) level 1028 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,819 WARNING ALERT NR-TML-0001-2026 (northern) level 1028 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:50:20,819 WARNING ALERT NE-MMPE-0002-2025 (north_east) level 445 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:50:20,819 WARNING ALERT UE-BLS-SAN-0001-2026 (upper_east) level 442 -> team leader, regional supervisor, national lead: critical_indicator:2
+   2026-10-23 09:50:20,821 WARNING ALERT UE-BLS-FUM-0001-2026 (upper_east) level 442 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:50:20,822 WARNING ALERT UE-BLS-SAN-0002-2026 (upper_east) level 442 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,822 WARNING ALERT SV-GNJW-BUS-0001-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:5
+   2026-10-23 09:50:20,822 WARNING ALERT SV-GNJW-SOR-0001-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:1
+   2026-10-23 09:50:20,823 WARNING ALERT SV-GNJW-LAR-0002-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: self_harm
+   2026-10-23 09:50:20,823 WARNING ALERT SV-GNJW-DAM-0005-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,823 WARNING ALERT SV-GNJW-SOR-0003-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:1, worker_immediate_danger
+   2026-10-23 09:50:20,824 WARNING ALERT SV-GNJW-LAR-0004-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:1,2
+   2026-10-23 09:50:20,824 WARNING ALERT SV-GNJW-BUS-0004-2026 (savannah) level 441 -> team leader, regional supervisor, national lead: critical_indicator:6
+   2026-10-23 09:50:20,824 WARNING ALERT NR-SGN-SAG-0001-2025 (northern) level 411 -> team leader, regional supervisor, national lead: critical_indicator:1,6
+   2026-10-23 09:50:20,825 WARNING ALERT OT-KRCE-0002-2026 (oti) level 404 -> team leader, regional supervisor, national lead: critical_indicator:6
+
+WORKER LOG (cases saved, alerts confirmed):
+   2026-10-23 09:45:46,580 INFO    worker started; waiting for jobs ({'waiting': 0, 'failed': 0})
+   2026-10-23 09:46:16,345 INFO    field    NE-MMPW-WUL-0001-2025    saved: High, alert (critical_indicator:1,5)
+
+Alerts after the run: 9 review open, 1 urgent confirmed, 21 urgent open
+
+Messages carry the case reference, region, level and reason codes only: no names or report text.
+The webhook secret and API key were read from .env and are not shown here.
+A backup of the database was taken before this run (data/backups/, not in Git).
