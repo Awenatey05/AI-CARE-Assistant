@@ -49,3 +49,8 @@ def test_failed_job_is_kept_and_can_be_retried(r):
     assert queue.retry_failed(connection=r) == 1
     again = queue.next_job(timeout=1, connection=r)
     assert again["id"] == job["id"] and "error" not in again
+
+
+def test_waiting_on_an_empty_queue_is_not_an_error(r):
+    # The worker waits 5 seconds for a job; redis-py 8 used to give up reading at exactly 5.
+    assert queue.next_job(timeout=5, connection=r) is None

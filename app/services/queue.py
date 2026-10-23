@@ -23,7 +23,9 @@ KINDS = {"field", "helpline", "upload"}   # which pipeline function the worker r
 
 
 def client() -> redis.Redis:
-    return redis.Redis.from_url(REDIS_URL, decode_responses=True)
+    # redis-py 8 stops reading after 5 seconds by default, the same time the worker
+    # waits for a job; allow longer so an empty queue is not mistaken for an error.
+    return redis.Redis.from_url(REDIS_URL, decode_responses=True, socket_timeout=30)
 
 
 def now() -> str:
