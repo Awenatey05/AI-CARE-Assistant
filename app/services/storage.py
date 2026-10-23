@@ -86,3 +86,12 @@ def exists(key: str, bucket: str = STORAGE_BUCKET) -> bool:
         return True
     except ClientError:
         return False
+
+
+# 4. A TEMPORARY COPY FOR PROCESSING
+def download_to(key: str, folder: str | Path, bucket: str = STORAGE_BUCKET) -> Path:
+    """Copy an original into a folder (for Whisper or a document reader) and return its path.
+    The original in storage is untouched; the caller deletes the folder afterwards."""
+    path = Path(folder) / Path(key).name
+    path.write_bytes(read_bytes(key, bucket))
+    return path
