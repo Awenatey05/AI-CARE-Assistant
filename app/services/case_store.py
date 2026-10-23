@@ -56,12 +56,21 @@ def save_case(case: dict[str, Any], connection: psycopg.Connection | None = None
                 )
 
         # Alert: one open alert per case at most.
+        # Urgent flags give an urgent alert; a "could not assess" case without one
+        # gives a low-priority review notice, so it is not forgotten.
         if values["alert"]:
+            priority, reasons = "urgent", values["urgent_reasons"]
+        elif values["status"] == "could_not_assess":
+            priority, reasons = "review", ["could_not_assess"]
+        else:
+            priority = None
+        if priority:
             open_alert = connection.execute(
-                "SELECT id FROM alerts WHERE case_id = %s AND status = 'open'", (case["id"],)).fetchone()
+                "SELECT id FROM alerts WHERE case_id = %s AND status = 'open' AND priority = %s",
+                (case["id"], priority)).fetchone()
             if not open_alert:
-                connection.execute("INSERT INTO alerts (case_id, reasons) VALUES (%s, %s)",
-                                   (case["id"], values["urgent_reasons"]))
+                connection.execute("INSERT INTO alerts (case_id, reasons, priority) VALUES (%s, %s, %s)",
+                                   (case["id"], reasons, priority))
         if own:
             connection.commit()
         return values["case_ref"]
@@ -83,7 +92,7 @@ def get_case(case_id: str, connection: psycopg.Connection | None = None) -> dict
             "SELECT indicator, subtype, source, quote, observed FROM indicators "
             "WHERE case_id = %s ORDER BY indicator", (case_id,)).fetchall()
         case["alerts"] = connection.execute(
-            "SELECT id, reasons, status, escalation_level, created_at FROM alerts "
+            "SELECT id, reasons, priority, status, escalation_level, created_at FROM alerts "
             "WHERE case_id = %s ORDER BY created_at", (case_id,)).fetchall()
         return case
     finally:

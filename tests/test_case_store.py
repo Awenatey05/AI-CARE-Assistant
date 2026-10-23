@@ -63,6 +63,24 @@ def test_no_alert_for_a_case_without_urgent_flags(db):
     assert get_case("test-case-1", connection=db)["alerts"] == []
 
 
+def test_urgent_alert_has_urgent_priority(db):
+    save_case(a_case(), connection=db)
+    assert get_case("test-case-1", connection=db)["alerts"][0]["priority"] == "urgent"
+
+
+def test_could_not_assess_gets_a_review_notice_once(db):
+    failed = a_case(status="could_not_assess", score=None, band=None, alert=False, urgent_reasons=[])
+    save_case(failed, connection=db)
+    save_case(failed, connection=db)
+    alerts = get_case("test-case-1", connection=db)["alerts"]
+    assert [(a["priority"], a["reasons"]) for a in alerts] == [("review", ["could_not_assess"])]
+
+
+def test_could_not_assess_with_urgent_rules_gets_the_urgent_alert(db):
+    save_case(a_case(status="could_not_assess", score=None, band=None), connection=db)
+    assert [a["priority"] for a in get_case("test-case-1", connection=db)["alerts"]] == ["urgent"]
+
+
 def test_observed_indicators_kept_but_marked(db):
     save_case(a_case(status="human_review", score=None, band=None, indicators=[],
                      observed_indicators=[{"id": 1, "subtype": None, "source": "report", "quote": "x"}]),
