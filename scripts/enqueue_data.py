@@ -1,5 +1,5 @@
 """
-LOAD THE DATA (README section 13, demo note: saved Kobo submissions are replayed)
+LOAD THE DATA(demo note: saved Kobo submissions are replayed)
 
 Sends the synthetic data through the same intake as real submissions:
 each original is saved in storage, then a job is queued for the worker.
