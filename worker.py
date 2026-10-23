@@ -3,8 +3,10 @@ THE BACKGROUND WORKER
 
 Takes jobs from the Redis queue one by one, runs the pipeline for each,
 saves the finished cases in Postgres and logs one line per case.
+It also runs the notifier: new alerts are sent straight after each job,
+and unconfirmed ones are checked for escalation about once a minute.
 
-    Redis queue -> worker -> pipeline -> Postgres
+    Redis queue -> worker -> pipeline -> Postgres -> notifier
 
 A job that fails is logged and kept in the failed list; the worker carries on.
 Log lines identify cases by reference only: never names, report text or quotes.
@@ -17,11 +19,12 @@ Stop with Ctrl + C.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from app.core.db import create_tables
 from app.llm.client import check_ollama
-from app.services import queue
+from app.services import notifier, queue
 from app.services.case_store import save_case
 from app.services.pipeline import process_field_submission, process_helpline_call, process_upload
 
@@ -65,17 +68,33 @@ def handle(job: dict[str, Any]) -> None:
         queue.record_failure(job, f"{type(error).__name__}: {error}")
 
 
-# 3. MAIN LOOP
+# 3. ALERTS
+ALERT_CHECK_SECONDS = 60
+
+
+def check_alerts() -> None:
+    """Send new alerts and escalate overdue ones; a notifier error never stops the worker."""
+    try:
+        notifier.run_once()
+    except Exception as error:
+        log.error("notifier failed: %s", type(error).__name__)
+
+
+# 4. MAIN LOOP
 def main() -> None:
     create_tables()
     if not check_ollama():
         log.warning("Ollama is not reachable: cases will be saved as 'could not assess'")
     log.info("worker started; waiting for jobs (%s)", queue.queue_sizes())
+    last_check = 0.0
     try:
         while True:
             job = queue.next_job(timeout=5)
             if job:
                 handle(job)
+            if job or time.monotonic() - last_check >= ALERT_CHECK_SECONDS:
+                check_alerts()
+                last_check = time.monotonic()
     except KeyboardInterrupt:
         log.info("worker stopped (%s)", queue.queue_sizes())
 

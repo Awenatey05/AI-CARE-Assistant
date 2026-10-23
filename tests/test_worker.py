@@ -55,3 +55,12 @@ def test_failed_job_is_kept_and_the_worker_carries_on(monkeypatch, saved, caplog
 def test_status_shown_when_there_is_no_band():
     line = worker.describe(a_case(band=None, status="not_scored_no_consent", alert=False), "OT-JSK-0002-2026")
     assert line.endswith("saved: not_scored_no_consent")
+
+
+def test_notifier_error_does_not_stop_the_worker(monkeypatch, caplog):
+    def broken():
+        raise ConnectionError("Postgres is down")
+    monkeypatch.setattr(worker.notifier, "run_once", broken)
+    with caplog.at_level(logging.ERROR, logger="worker"):
+        worker.check_alerts()                                            # does not raise
+    assert caplog.records[-1].getMessage() == "notifier failed: ConnectionError"
