@@ -17,7 +17,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.api import health, kobo
+from app.api import health, kobo, office
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
 
@@ -28,3 +28,4 @@ app = FastAPI(
 )
 app.include_router(health.router)
 app.include_router(kobo.router)
+app.include_router(office.router)

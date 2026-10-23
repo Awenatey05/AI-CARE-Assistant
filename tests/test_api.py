@@ -62,3 +62,85 @@ def test_health_reports_each_part(monkeypatch):
     body = response.json()
     assert set(body) == {"status", "postgres", "redis", "storage", "ollama"}
     assert body["ollama"] is False and response.status_code == 503 and body["status"] == "degraded"
+
+
+# ------------------------------------------------
+# Office intake: helpline reports and uploads
+# ------------------------------------------------
+
+from app.api import office  # noqa: E402
+
+KEY = {"X-Api-Key": "test-key"}
+
+
+@pytest.fixture
+def office_api(monkeypatch):
+    received = []
+    monkeypatch.setattr(office, "API_KEY", "test-key")
+    monkeypatch.setattr(office.intake, "receive_helpline_call",
+                        lambda call, path: received.append((call, path and path.name)) or "job-1")
+    monkeypatch.setattr(office.intake, "receive_upload",
+                        lambda entry, path: received.append((entry, path.name)) or "job-2")
+    return TestClient(main.app), received
+
+
+REPORT = {"region": "Northern", "district": "Savelugu", "report_text": "The child said there was no food at home."}
+
+
+def test_typed_helpline_report_queued(office_api):
+    client, received = office_api
+    response = client.post("/helpline", data=REPORT, headers=KEY)
+    assert response.status_code == 202 and response.json()["report_id"].startswith("HL-")
+    call, recording = received[0]
+    assert (call["region"], call["recording_file"], recording) == ("northern", None, None)
+
+
+def test_recording_with_consent(office_api):
+    client, received = office_api
+    response = client.post("/helpline", data={**REPORT, "consent_to_record": "true"},
+                           files={"recording": ("call.m4a", b"audio", "audio/mp4")}, headers=KEY)
+    call, recording = received[0]
+    assert response.status_code == 202 and recording == call["recording_file"] == f"{call['report_id']}.m4a"
+
+
+def test_recording_without_consent_refused(office_api):
+    client, received = office_api
+    response = client.post("/helpline", data=REPORT, files={"recording": ("call.m4a", b"audio", "audio/mp4")},
+                           headers=KEY)
+    assert response.status_code == 422 and received == []
+
+
+@pytest.mark.parametrize("change", [{"region": "Atlantis"}, {"report_text": "too short"}])
+def test_invalid_report_refused(office_api, change):
+    client, received = office_api
+    assert client.post("/helpline", data={**REPORT, **change}, headers=KEY).status_code == 422
+    assert received == []
+
+
+def test_office_routes_need_the_api_key(office_api):
+    client, received = office_api
+    assert client.post("/helpline", data=REPORT).status_code == 401
+    assert client.post("/uploads", data={"region": "oti", "district": "x", "document_type": "medical_report"},
+                       files={"file": ("a.pdf", b"%PDF", "application/pdf")}).status_code == 401
+    assert received == []
+
+
+def test_document_upload_queued(office_api):
+    client, received = office_api
+    response = client.post("/uploads", data={"region": "oti", "district": "Krachi East",
+                                             "document_type": "medical_report", "child_name": "Ama Mensah"},
+                           files={"file": ("report.pdf", b"%PDF-1.4", "application/pdf")}, headers=KEY)
+    entry, name = received[0]
+    assert response.status_code == 202 and response.json()["upload_id"].startswith("UP-")
+    assert (entry["child_name"], entry["file"], name) == ("Ama Mensah", "report.pdf", "report.pdf")
+
+
+@pytest.mark.parametrize("filename,document_type", [("notes.exe", "medical_report"),
+                                                    ("sheet.xlsx", "medical_report"),   # a sheet needs its kind
+                                                    ("empty.pdf", "medical_report")])
+def test_bad_uploads_refused(office_api, filename, document_type):
+    client, received = office_api
+    content = b"" if filename.startswith("empty") else b"data"
+    response = client.post("/uploads", data={"region": "oti", "district": "x", "document_type": document_type},
+                           files={"file": (filename, content)}, headers=KEY)
+    assert response.status_code == 422 and received == []
