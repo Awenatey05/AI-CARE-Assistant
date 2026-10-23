@@ -26,6 +26,7 @@ __pycache__/
 # database files
 data/postgres/
 data/redis/
+data/backups/
 
 # personal / downloaded data
 kobo_test_pull.json
