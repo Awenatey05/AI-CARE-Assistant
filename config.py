@@ -26,3 +26,5 @@ KOBO_ASSET_UID = os.getenv("KOBO_ASSET_UID")
 KOBO_API_TOKEN = os.getenv("KOBO_API_TOKEN")
 KOBO_WEBHOOK_SECRET = os.getenv("KOBO_WEBHOOK_SECRET")   # sent by Kobo in the X-Webhook-Secret header
 API_KEY = os.getenv("API_KEY")   # sent by the Streamlit pages in the X-Api-Key header
+
+ALERT_ESCALATE_HOURS = float(os.getenv("ALERT_ESCALATE_HOURS", "24"))   # unconfirmed urgent alerts escalate after this
