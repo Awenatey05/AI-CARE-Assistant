@@ -18,3 +18,4 @@ boto3==1.43.117
 fastapi==0.161.1
 uvicorn==0.54.0
 python-multipart==0.0.32
+numpy==2.4.6
