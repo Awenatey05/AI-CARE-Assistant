@@ -1,4 +1,4 @@
-"""Chunking for search (from the course's rag.py).
+"""Chunking and the grounded prompt (from the course's rag.py).
 
 Texts are cut into pieces of 120 words, each overlapping the one before by
 25 words, so a sentence on a boundary is never lost. Each piece gets an id
@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterable
+
+from app.rag.embeddings import SearchHit
 
 
 @dataclass
@@ -33,3 +35,21 @@ def make_chunks(documents: Iterable[tuple[str, str]], size: int = 120, overlap: 
         for number, body in enumerate(chunk_words(text, size=size, overlap=overlap)):
             chunks.append(Chunk(body, source, f"{source}#chunk-{number}"))
     return chunks
+
+
+def format_context(hits: list[SearchHit]) -> str:
+    return "\n\n".join(f"[{hit.metadata.get('chunk_id', hit.index)} | score={hit.score:.3f}]\n{hit.text}" for hit in hits)
+
+
+def grounded_prompt(question: str, hits: list[SearchHit]) -> str:
+    context = format_context(hits)
+    return f"""Answer the question using only the evidence below.
+If the evidence is insufficient, say: I don't have enough evidence.
+Cite claims with the source labels in square brackets. Do not invent citations.
+
+EVIDENCE
+{context}
+
+QUESTION
+{question}
+"""
