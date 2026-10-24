@@ -62,3 +62,20 @@ def test_no_evidence_means_no_model_call(fake):
 
 def test_an_answer_without_brackets_has_no_citations():
     assert cited_labels("I don't have enough evidence.") == []
+
+
+def test_masking_placeholders_are_not_citations():
+    assert cited_labels("The caller [NAME] left [PHONE] [NR-1#chunk-0].") == ["NR-1#chunk-0"]
+
+
+def test_search_tool_keeps_the_region_and_gives_labels(monkeypatch):
+    from app.tools import search_tool
+    asked = {}
+    def fake_search(question, k, min_score, region, source_type):
+        asked.update(region=region, k=k, only=source_type)
+        return HITS
+    monkeypatch.setattr(search_tool, "search", fake_search)
+    tool = search_tool.make_search_tool("upper_east")
+    result = tool.invoke({"question": "forced marriage", "only": "policy"})
+    assert asked == {"region": "upper_east", "k": 5, "only": "policy"}
+    assert result["evidence"][0]["label"] == "policy_childrens_act_560.pdf#chunk-16"

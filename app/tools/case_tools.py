@@ -7,6 +7,7 @@ is guessed by the model.
     count_cases  "How many High cases are there in Savelugu?"
     list_cases   "Which children in Gumani are out of school?"
     show_case    "Why is NR-TML-GUM-0012-2026 High? What was the report?"
+    find_case_by_name  "Do we have a case for Ama Mensah?" (only after the user's OK)
 
 The tools are made for one region (the user's), when the chat starts. The
 region is not an argument the model can set, so a team leader never gets an
@@ -53,6 +54,10 @@ class CaseFilters(BaseModel):
 
 class ListArgs(CaseFilters):
     limit: int = Field(default=10, ge=1, le=25)
+
+
+class NameArgs(BaseModel):
+    name: str = Field(min_length=2, description="the child's name, or part of it")
 
 
 class ShowArgs(BaseModel):
@@ -152,6 +157,19 @@ def show_case(region: str | None, case_ref: str) -> dict[str, Any]:
     }
 
 
+def find_case_by_name(region: str | None, name: str) -> dict[str, Any]:
+    """Cases whose child's name contains every word given. Names are only in the cases
+    table (search chunks are masked); the answer gives references, never the name."""
+    words = name.split()
+    sql, params = where(region, {})
+    for number, word in enumerate(words):
+        sql += f" AND c.child_name ILIKE %(w{number})s"
+        params[f"w{number}"] = f"%{word}%"
+    rows = connect().execute(f"SELECT c.case_ref, c.band, c.status, c.district, c.community FROM cases c "
+                             f"WHERE {sql} ORDER BY {BAND_ORDER} DESC LIMIT 10", params).fetchall()
+    return {"region": region or "all regions", "found": len(rows), "cases": [dict(r) for r in rows]}
+
+
 # 4. THE TOOLS FOR ONE REGION
 def make_case_tools(region: str | None) -> list[Tool]:
     """The case tools for one user's region (None only for the super administrator)."""
@@ -166,4 +184,7 @@ def make_case_tools(region: str | None) -> list[Tool]:
              "quote, the masked report, alerts, whether the report has a phone number, and which photos, "
              "recordings or videos it has.", ShowArgs,
              lambda case_ref: show_case(region, case_ref)),
+        Tool("find_case_by_name", "Find cases by the child's name. Returns case references only. Needs the "
+             "user's OK first, because it links a child's name to a case.", NameArgs,
+             lambda name: find_case_by_name(region, name), requires_approval=True),
     ]

@@ -26,6 +26,7 @@ from app.rag.search import search
 K = 5              # chunks given to the model
 MIN_SCORE = -1.0   # keep all k, however weak (see above)
 NO_EVIDENCE = "I don't have enough evidence."
+PLACEHOLDERS = {"NAME", "PHONE"}   # left by masking; not citations
 
 
 @dataclass
@@ -40,12 +41,13 @@ class Answer:
 # 2. CITATIONS
 def cited_labels(text: str) -> list[str]:
     """The labels cited in [brackets], e.g. [NR-TML-GUM-0012-2026#chunk-0].
-    A copied score ("| score=0.512") is ignored; [a, b] counts as two labels."""
+    A copied score ("| score=0.512") is ignored; [a, b] counts as two labels;
+    the masking placeholders [NAME] and [PHONE] are not citations."""
     labels = []
     for inside in re.findall(r"\[([^\[\]]+)\]", text):
         for label in re.split(r"[,;]", inside):
             label = label.split("|")[0].strip()
-            if label and label not in labels:
+            if label and label not in PLACEHOLDERS and label not in labels:
                 labels.append(label)
     return labels
 

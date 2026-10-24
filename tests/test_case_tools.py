@@ -110,3 +110,18 @@ def test_wrong_arguments_are_refused(tools):
         t["count_cases"].invoke({"band": "Very high"})
     with pytest.raises(ValidationError):
         t["list_cases"].invoke({"indicator": 11})
+
+
+def test_finding_by_name_needs_the_ok_first(tools):
+    t, _ = tools
+    with pytest.raises(PermissionError):
+        t["find_case_by_name"].invoke({"name": "Ama"})
+
+
+def test_finding_by_name_gives_references_in_the_region_only(tools):
+    t, refs = tools
+    result = t["find_case_by_name"].invoke({"name": "ama MENSAH"}, approved=True)
+    assert sorted(c["case_ref"] for c in result["cases"]) == sorted(refs[i] for i in ("test-tool-1", "test-tool-2",
+                                                                                     "test-tool-3"))
+    assert "Ama" not in str(result["cases"])
+    assert t["find_case_by_name"].invoke({"name": "Kofi"}, approved=True)["found"] == 0
