@@ -1,0 +1,25 @@
+CASE EMBEDDING: saved cases (masked text, no chunks) -> chunks (120 / 25) -> embeddinggemma -> Postgres
+Run at: 2026-10-24 21:58:00
+Command: python -m scripts.embed_cases
+
+52 cases embedded: 67 chunks in 4 s
+In the database: 67 case chunks from 52 cases; 0 cases with text still without chunks
+
+Second run (nothing left to do):
+0 cases embedded: 0 chunks in 0 s
+In the database: 67 case chunks from 52 cases; 0 cases with text still without chunks
+
+BY CHANNEL (cases with text -> chunks):
+  field       6 cases ->   7 chunks
+  helpline   12 cases ->  16 chunks
+  upload     34 cases ->  44 chunks
+Cases without text to embed: 18 upload
+
+PRIVACY CHECK: no child's name from cases.child_name appears in any case chunk
+  55 child names checked against their own case's chunks: 0 chunks contain the full name
+  Chunk names are case references, e.g.: OT-NKWS-NKW-0001-2025#chunk-0, NR-SVL-0001-2026#chunk-0, SV-GNJW-0001-2026#chunk-0
+
+WHY 18 UPLOAD CASES HAVE NO TEXT
+  They are rows of two sheets with no free text: the school attendance register (attendance_register_kanvili.xlsx,
+  11 children: days absent only) and the field round compilation (field_round_2025_r2_west_gonja.xlsx, 7 children:
+  typed answers read by the Python rules). They are scored and searchable by the case tools (Stage 7), not by text.
