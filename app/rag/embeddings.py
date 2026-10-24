@@ -7,6 +7,8 @@ The search itself runs in Postgres with pgvector, not in memory.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from config import OLLAMA_BASE_URL, OLLAMA_EMBED_MODEL
@@ -26,3 +28,11 @@ class OllamaEmbedder:
         )
         response.raise_for_status()
         return np.asarray(response.json()["embeddings"], dtype=np.float32)
+
+
+@dataclass
+class SearchHit:
+    index: int
+    score: float
+    text: str
+    metadata: dict
