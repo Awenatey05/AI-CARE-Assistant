@@ -1,0 +1,47 @@
+POLICY LOAD: data/policies -> read_pdf -> chunks (120 words, 25 overlap) -> embeddinggemma -> Postgres
+Run at: 2026-10-24 21:47:17
+Command: python -m scripts.load_policies
+
+policy_child_family_welfare_2015.pdf        11,648 words ->  123 chunks  (4 s)
+policy_childrens_act_560.pdf                12,689 words ->  134 chunks  (3 s)
+policy_childrens_amendment_act_937.pdf       8,014 words ->   85 chunks  (2 s)
+policy_criminal_offences_act_29.pdf         47,496 words ->  500 chunks  (12 s)
+policy_domestic_violence_act_732.pdf         6,043 words ->   64 chunks  (2 s)
+policy_human_trafficking_act_694.pdf         4,696 words ->   50 chunks  (2 s)
+policy_justice_for_children_2015.pdf        21,396 words ->  226 chunks  (5 s)
+policy_uncrc.pdf                             7,610 words ->   81 chunks  (2 s)
+
+1263 chunks saved in 32 s; in the database: 1263 policy chunks from 8 documents
+
+CHECK: do the vectors find the right law? (the 3 closest chunks by cosine distance in pgvector)
+
+  Q: What is the minimum age of marriage in Ghana?
+     0.572  policy_child_family_welfare_2015.pdf#chunk-38
+            "were first married before the age of 18.16 Birth registration – an important pre-requisi te for the protection..."
+     0.570  policy_childrens_act_560.pdf#chunk-16
+            "(1) No person shall force a child— (a) to be betrothed; (b) to be the subject of a dowry transaction; or (c) t..."
+     0.550  policy_child_family_welfare_2015.pdf#chunk-37
+            "service.13 Although prohibited, early marriage, female genital mutilation/cutting and the trokosi system of ri..."
+
+  Q: Is it legal to recruit a child for labour in another town?
+     0.531  policy_childrens_act_560.pdf#chunk-89
+            "88—Prohibition of Child Labour at Night. (1) No person shall engage a child in night work. (2) Night work cons..."
+     0.493  policy_childrens_act_560.pdf#chunk-88
+            "is in the best interest of the child or not; and (e) any other matter that the Committee may determine. (3) Fo..."
+     0.477  policy_childrens_act_560.pdf#chunk-5
+            "79. Adoption order and customary law 80. Adoption order and citizenship 81. Effect of adoption order on fit pe..."
+
+  Q: Can a child be punished by beating at school?
+     0.470  policy_child_family_welfare_2015.pdf#chunk-32
+            "method of discipline. In 2009, 41 per cent of the children sampled had been caned or whipped at home, 83 per c..."
+     0.460  policy_child_family_welfare_2015.pdf#chunk-31
+            "formal care, representing 0.0004 per cent of the child population. 4 Nearly all of them (99 per cent) were pla..."
+     0.417  policy_child_family_welfare_2015.pdf#chunk-34
+            "Children’s Affairs, 2009 CHILD AND FAMILY WELFARE POLICY 2 to more than 1,600 in 2009.7 Surveys, however, sugg..."
+
+WHAT THE CHECK SHOWS
+  Marriage: the Children's Act 560 chunk that forbids forcing a child into betrothal is found, with the policy's
+  figure on marriage before 18. Beating: the welfare policy's figures on caning at home and school are found.
+  Labour in another town: the Children's Act on child labour is found, but not the Human Trafficking Act 694,
+  which is the closer law for recruiting a child away from home; a table of contents chunk (chunk-5) also
+  comes third. Scores are modest (0.42-0.57). Search quality is measured properly in the evaluation (Stage 9).
