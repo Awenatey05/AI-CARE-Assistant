@@ -15,6 +15,7 @@ def saved(monkeypatch):
     record = {"saved": [], "failed": []}
     monkeypatch.setattr(worker, "save_case", lambda case: record["saved"].append(case) or "NR-TML-GUM-0001-2026")
     monkeypatch.setattr(worker.queue, "record_failure", lambda job, error: record["failed"].append(error))
+    monkeypatch.setattr(worker, "save_case_chunks", lambda case_id, ref, region, text: 2 if text else 0)
     return record
 
 
@@ -64,3 +65,23 @@ def test_notifier_error_does_not_stop_the_worker(monkeypatch, caplog):
     with caplog.at_level(logging.ERROR, logger="worker"):
         worker.check_alerts()                                            # does not raise
     assert caplog.records[-1].getMessage() == "notifier failed: ConnectionError"
+
+
+def test_log_line_counts_chunks(monkeypatch, saved, caplog):
+    monkeypatch.setattr(worker, "process_field_submission", lambda data, original_key=None: a_case())
+    with caplog.at_level(logging.INFO, logger="worker"):
+        worker.handle({"id": "job-1", "kind": "field", "data": {}})
+    assert caplog.records[-1].getMessage().endswith(", 2 chunks")
+
+
+def test_embedding_failure_keeps_the_case_and_the_job(monkeypatch, saved, caplog):
+    def ollama_down(case_id, ref, region, text):
+        raise ConnectionError("Ollama is not running")
+    monkeypatch.setattr(worker, "process_field_submission", lambda data, original_key=None: a_case())
+    monkeypatch.setattr(worker, "save_case_chunks", ollama_down)
+    with caplog.at_level(logging.INFO, logger="worker"):
+        worker.handle({"id": "job-1", "kind": "field", "data": {}})
+    messages = [r.getMessage() for r in caplog.records if r.name == "worker"]
+    assert len(saved["saved"]) == 1 and saved["failed"] == []
+    assert "NR-TML-GUM-0001-2026 not yet searchable: ConnectionError" in messages
+    assert "secret text" not in " ".join(messages)

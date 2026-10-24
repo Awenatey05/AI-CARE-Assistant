@@ -2,7 +2,8 @@
 THE BACKGROUND WORKER
 
 Takes jobs from the Redis queue one by one, runs the pipeline for each,
-saves the finished cases in Postgres and logs one line per case.
+saves the finished cases in Postgres, chunks and embeds their masked text
+for search, and logs one line per case.
 It also runs the notifier: new alerts are sent straight after each job,
 and unconfirmed ones are checked for escalation about once a minute.
 
@@ -26,6 +27,7 @@ from app.core.db import create_tables
 from app.llm.client import check_ollama
 from app.services import notifier, queue
 from app.services.case_store import save_case
+from app.services.chunk_store import save_case_chunks
 from app.services.pipeline import process_field_submission, process_helpline_call, process_upload
 
 # 1. LOGGING
@@ -50,11 +52,22 @@ def run_job(job: dict[str, Any]) -> list[dict[str, Any]]:
     raise ValueError(f"Unknown job kind: {kind!r}")
 
 
-def describe(case: dict[str, Any], case_ref: str) -> str:
-    """One log line: reference, outcome and alert reasons. No personal information."""
+def describe(case: dict[str, Any], case_ref: str, chunks: int | None = None) -> str:
+    """One log line: reference, outcome, alert reasons and chunks. No personal information."""
     outcome = case.get("band") or case["status"]
     alert = f", alert ({', '.join(case['urgent_reasons'])})" if case.get("alert") else ""
-    return f"{case['channel']:8} {case_ref:24} saved: {outcome}{alert}"
+    searchable = f", {chunks} chunks" if chunks else ""
+    return f"{case['channel']:8} {case_ref:24} saved: {outcome}{alert}{searchable}"
+
+
+def index_case(case: dict[str, Any], case_ref: str) -> int | None:
+    """Chunk and embed the masked text for search. The case is already saved, so a
+    failure here is logged and the case is embedded later (scripts/embed_cases.py)."""
+    try:
+        return save_case_chunks(case["id"], case_ref, case.get("region"), case.get("masked_text"))
+    except Exception as error:
+        log.error("%s not yet searchable: %s", case_ref, type(error).__name__)
+        return None
 
 
 def handle(job: dict[str, Any]) -> None:
@@ -62,7 +75,7 @@ def handle(job: dict[str, Any]) -> None:
     try:
         for case in run_job(job):
             case_ref = save_case(case)
-            log.info(describe(case, case_ref))
+            log.info(describe(case, case_ref, index_case(case, case_ref)))
     except Exception as error:      # one bad job must never stop the worker
         log.error("job %s (%s) failed: %s", job["id"][:8], job["kind"], type(error).__name__)
         queue.record_failure(job, f"{type(error).__name__}: {error}")
