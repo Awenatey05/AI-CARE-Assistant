@@ -42,6 +42,7 @@ def run(monkeypatch):
         return [Tool("count_cases", "Count cases.", CountArgs, count),
                 Tool("show_case", "Show one case.", ShowArgs, show),
                 Tool("find_case_by_name", "Find by name.", NameArgs, by_name, requires_approval=True)]
+    monkeypatch.setattr(assistant, "mask_keeping_names", lambda text: (text, []))   # replaced in the masking tests
     monkeypatch.setattr(assistant, "make_case_tools", case_tools)
     monkeypatch.setattr(assistant, "make_search_tool", lambda region: Tool(
         "search_documents", "Search.", NameArgs, lambda name: {"evidence": [{"label": "policy_uncrc.pdf#chunk-3"}]}))
@@ -134,3 +135,25 @@ def test_sources_shown_even_when_the_model_cites_none(run):
     go, _ = run
     reply = go([tool("count_cases", band="High"), answer("There are 26.")])
     assert reply.citations == [] and reply.with_sources() == "There are 26.\n\nSources: [UE-BLS-SAN-0002-2026]"
+
+
+
+def test_the_model_never_sees_the_name_but_the_tool_gets_it(run, monkeypatch):
+    go, record = run
+    monkeypatch.setattr(assistant, "mask_keeping_names",
+                        lambda text: (text.replace("Ama Mensah", "[NAME]"), ["Ama Mensah"]))
+    question = "Do we have a case for Ama Mensah?"
+    first = go([tool("find_case_by_name", name="[NAME]")], question=question)
+    assert first.needs_approval == {"tool": "find_case_by_name", "args": {"name": "[NAME]"}}
+    reply = go([tool("find_case_by_name", name="[NAME]"), answer("Yes: [UE-BLS-FUM-0001-2026].")],
+               question=question, approved=first.needs_approval)
+    assert record["ran"] == [("find_case_by_name", "Ama Mensah")]            # the database got the real name
+    assert all("Ama" not in text for sent in record["sent"] for text in sent)  # the model never did
+    assert reply.tool_calls == [{"tool": "find_case_by_name", "args": {"name": "[NAME]"}}]
+
+
+def test_a_reference_survives_masking(run, monkeypatch):
+    go, record = run
+    monkeypatch.setattr(assistant, "mask_keeping_names", lambda text: ("[PHONE] [NAME]", []))   # masking too much
+    go([answer("High.")], question="Why is NR-SGN-SAG-0001-2025 High?")
+    assert record["ran"] == [("show_case", "NR-SGN-SAG-0001-2025")]

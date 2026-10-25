@@ -9,6 +9,10 @@ not JSON is sent back to the model to correct, until the budget runs out.
 A tool that needs the user's OK (finding a case by name) stops the loop and
 asks first. The tools are made for the user's region only.
 
+The question is masked first, like every text the model reads: it sees [NAME]
+and [PHONE], never a name or number. A name the user asks about stays in
+Python and is put back only when finding a case by name, after the user's OK.
+
 The model is small (llama3.2), so three things do not rely on it:
     - a case reference in the question is looked up by Python before the model starts;
     - empty values ("all", "any") are removed and "high risk" is read as High;
@@ -26,6 +30,7 @@ from pydantic import ValidationError
 
 from app.llm.client import chat_with_llm, parse_json_object
 from app.rag.answer import NO_EVIDENCE, cited_labels
+from app.services.masking import mask_keeping_names
 from app.tools.agents import AgentState, Tool, enforce_budget
 from app.tools.case_tools import make_case_tools
 from app.tools.search_tool import make_search_tool
@@ -154,6 +159,8 @@ def references_in(result: Any) -> set[str]:
 def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = None,
         history: list[dict[str, str]] | None = None) -> Reply:
     """Answer one question for a user of `region`. `approved` is a tool call the user has said OK to."""
+    references = REFERENCE.findall(question.upper())      # found before masking, so a reference is never lost
+    question, names = mask_keeping_names(question)        # the model only ever sees [NAME] and [PHONE]
     tools = {tool.name: tool for tool in make_case_tools(region) + [make_search_tool(region)]}
     state = AgentState(messages=[{"role": "system", "content": INSTRUCTIONS.format(tools=describe_tools(tools))},
                                  *(history or []), {"role": "user", "content": question}])
@@ -161,10 +168,10 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
     allowed: set[str] = set()
     sources: list[str] = []
 
-    def run(name: str, args: dict[str, Any], *, ok: bool = False) -> Any:
+    def run(name: str, args: dict[str, Any], *, ok: bool = False, shown: dict[str, Any] | None = None) -> Any:
         state.tool_calls += 1
         result = tools[name].invoke(args, approved=ok)
-        calls.append({"tool": name, "args": args})
+        calls.append({"tool": name, "args": shown if shown is not None else args})   # never a real name
         found = references_in(result)
         allowed.update(found)
         sources.extend(sorted(f for f in found if f not in sources))
@@ -172,7 +179,7 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
                                f"{json.dumps(result, default=str, ensure_ascii=False)}"})
         return result
 
-    for reference in dict.fromkeys(REFERENCE.findall(question.upper())):     # guard: look it up first
+    for reference in dict.fromkeys(references):                              # guard: look it up first
         run("show_case", {"case_ref": reference})
 
     while True:
@@ -205,8 +212,11 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
         if tool.requires_approval and approved != {"tool": name, "args": args}:
             return Reply(f"This looks up a child's name ({name}). Continue?", calls,
                          needs_approval={"tool": name, "args": args}, sources=sources)
+        real_args = args
+        if name == "find_case_by_name" and names and "[NAME]" in str(args.get("name", "")):
+            real_args = {**args, "name": " ".join(names)}  # the real name goes to the database, not the model
         try:
-            run(name, args, ok=tool.requires_approval)
+            run(name, real_args, ok=tool.requires_approval, shown=args)
         except ValidationError as error:
             problems = "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in error.errors())
             state.messages.append({"role": "user", "content": f"The arguments for {name} were wrong ({problems}). "
