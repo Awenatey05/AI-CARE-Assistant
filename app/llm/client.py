@@ -10,7 +10,7 @@ import json
 import re
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterator
 
 import requests
 
@@ -66,6 +66,20 @@ def chat_with_llm(
     message = response.json().get("message") or {}
     text = (message.get("content") or "").strip()
     return Generation(text, model, time.perf_counter() - started)
+
+
+def stream_chat_with_llm(messages: list[dict[str, str]], *, model: str | None = None,
+                         temperature: float = TEMPERATURE, timeout: int = 120) -> Iterator[str]:
+    """Send messages to Ollama /api/chat with streaming, and yield the reply piece by piece."""
+    model = model or OLLAMA_CHAT_MODEL
+    body = {"model": model, "messages": messages, "stream": True, "options": {"temperature": temperature}}
+    with requests.post(f"{OLLAMA_BASE_URL}/api/chat", json=body, timeout=timeout, stream=True) as response:
+        response.raise_for_status()
+        for line in response.iter_lines():          # Ollama sends one JSON line per piece
+            if line:
+                piece = json.loads(line).get("message", {}).get("content", "")
+                if piece:
+                    yield piece
 
 
 def parse_json_object(text: str) -> dict[str, Any]:
