@@ -1,0 +1,94 @@
+ASSISTANT: BEFORE AND AFTER (same 6 questions, same model llama3.2, real data, during the full load)
+Run on 2026-10-25 between 00:20 and 01:00. The numbers grow between runs because the full load was still adding cases.
+
+WHAT CHANGED BETWEEN THE RUNS
+  Instructions: the allowed values of every argument are listed; "give only the arguments the question asks for";
+  "a case reference -> show_case"; "a place goes in place"; three short examples (count, list with a quote, the law with a citation).
+  Tools: district and community became one "place" argument (matches either, from the start of the name).
+  Guards in Python (do not rely on the model):
+    1. a case reference in the question is looked up with show_case before the model starts;
+    2. empty values ("all", "any") and unknown arguments are removed; "high risk" is read as High;
+    3. the sources every tool returned are listed under the answer, even if the model cites none.
+
+======================================== BEFORE ========================================
+
+[upper_east] Q: How many high risk cases are there? Give me a number.   (20 s)
+  tools: [{'tool': 'count_cases', 'args': {'band': 'high risk', 'indicator': None, 'district': None, 'community': None, 'channel': None, 'status': 'high risk'}, 'error': "band: Input should be 'No risk', 'Low', 'Moderate' or 'High'; status: Input should be 'assessed', 'human_review', 'could_not_assess', 'not_scored_incomplete', 'not_scored_no_consent' or 'needs_transcription'"}, {'tool': 'count_cases', 'args': {'band': 'High', 'indicator': None, 'district': None, 'community': None, 'channel': None, 'status': 'assessed'}}]
+  A: There are 29 high-risk cases in the Upper East region that have been assessed.
+  citations: [] | invented: [] | stopped: None
+
+[northern] Q: Give me the high risk cases in Gumani.   (25 s)
+  tools: [{'tool': 'list_cases', 'args': {'band': 'high risk', 'indicator': '1-3', 'district': 'Gumani', 'community': 'Gumani', 'channel': 'all', 'status': 'open', 'limit': '10'}, 'error': "band: Input should be 'No risk', 'Low', 'Moderate' or 'High'; indicator: Input should be a valid integer, unable to parse string as an integer; channel: Input should be 'field', 'helpline' or 'upload'; status: Input should be 'assessed', 'human_review', 'could_not_assess', 'not_scored_incomplete', 'not_scored_no_consent' or 'needs_transcription'"}, {'tool': 'list_cases', 'args': {'band': 'No risk', 'indicator': '1', 'district': 'Gumani', 'community': 'Gumani', 'channel': 'field', 'status': 'assessed'}}]
+  A: I don't have enough evidence to list cases in Gumani.
+  citations: [] | invented: [] | stopped: None
+
+[northern] Q: Why was NR-SGN-SAG-0001-2025 considered high risk?   (9 s)
+  tools: []
+  A: I don't have enough evidence.
+  citations: [] | invented: [] | stopped: None
+
+[upper_west] Q: Did the caller in UW-NND-0001-2025 leave a number I can reach her on?   (9 s)
+  tools: []
+  A: I don't have enough evidence.
+  citations: [] | invented: [] | stopped: None
+
+[northern] Q: What does the law say about forcing a child into marriage?   (19 s)
+  tools: [{'tool': 'search_documents', 'args': {'question': 'child marriage law', 'only': 'policy'}}]
+  A: (1) No person shall force a child— (a) to be betrothed; (b) to be the subject of a dowry transaction; or (c) to be married. (2) The minimum age of marriage of whatever kind shall be eighteen years.
+  citations: [] | invented: [] | stopped: None
+
+[upper_east] Q: Show me the high risk cases in Gumani.   (25 s)
+  tools: [{'tool': 'list_cases', 'args': {'band': 'high risk', 'indicator': '1-10', 'district': 'Gumani', 'community': 'Gumani', 'channel': 'all', 'status': 'all', 'limit': '10'}, 'error': "band: Input should be 'No risk', 'Low', 'Moderate' or 'High'; indicator: Input should be a valid integer, unable to parse string as an integer; channel: Input should be 'field', 'helpline' or 'upload'; status: Input should be 'assessed', 'human_review', 'could_not_assess', 'not_scored_incomplete', 'not_scored_no_consent' or 'needs_transcription'"}, {'tool': 'list_cases', 'args': {'band': 'No risk', 'indicator': '1', 'district': 'Gumani', 'community': 'Gumani', 'channel': 'field', 'status': 'assessed'}}]
+  A: I don't have enough evidence to list cases in Gumani.
+  citations: [] | invented: [] | stopped: None
+
+======================================== AFTER =========================================
+
+[upper_east] Q: How many high risk cases are there? Give me a number.   (16 s)
+  tools: [{'tool': 'count_cases', 'args': {'band': 'High'}}]
+  A: There are 41 High-risk cases in your region.
+  citations: [] | invented: [] | stopped: None
+
+[northern] Q: Give me the high risk cases in Gumani.   (21 s)
+  tools: [{'tool': 'list_cases', 'args': {'place': 'Gumani', 'band': 'High'}}]
+  A: There are 3 High-risk cases in Gumani: [NR-TML-GUM-0004-2025], [NR-TML-GUM-0002-2025], and [NR-TML-GUM-0009-2025].
+
+Sources: [NR-TML-GUM-0004-2025], [NR-TML-GUM-0002-2025], [NR-TML-GUM-0009-2025]
+  citations: ['NR-TML-GUM-0004-2025', 'NR-TML-GUM-0002-2025', 'NR-TML-GUM-0009-2025'] | invented: [] | stopped: None
+
+[northern] Q: Why was NR-SGN-SAG-0001-2025 considered high risk?   (9 s)
+  tools: [{'tool': 'show_case', 'args': {'case_ref': 'NR-SGN-SAG-0001-2025'}}]
+  A: NR-SGN-SAG-0001-2025 was considered High risk because it has critical indicators 1 and 6, which are Physical violence or injury and Trafficking, separated child respectively, and the child is experiencing physical and emotional abuse, neglect, and child labour, and is at risk of further harm.
+
+Sources: [NR-SGN-SAG-0001-2025]
+  citations: [] | invented: [] | stopped: None
+
+[upper_west] Q: Did the caller in UW-NND-0001-2025 leave a number I can reach her on?   (8 s)
+  tools: [{'tool': 'show_case', 'args': {'case_ref': 'UW-NND-0001-2025'}}]
+  A: The caller in UW-NND-0001-2025 left a phone number in the report, which can be found in the 'report_masked' section. You can reach her on [PHONE].
+
+Sources: [UW-NND-0001-2025]
+  citations: [] | invented: [] | stopped: None
+
+[northern] Q: What does the law say about forcing a child into marriage?   (18 s)
+  tools: [{'tool': 'search_documents', 'args': {'question': 'forcing a child into marriage', 'only': 'policy'}}]
+  A: Forcing a child into marriage is prohibited under the Children's Act [policy_childrens_act_560.pdf#chunk-16]. Section 13 of the Act states that no person shall force a child to be betrothed, subject to a dowry transaction, or to be married. The minimum age of marriage is eighteen years.
+
+Sources: [policy_childrens_act_560.pdf#chunk-16]
+  citations: ['policy_childrens_act_560.pdf#chunk-16'] | invented: [] | stopped: None
+
+[upper_east] Q: Show me the high risk cases in Gumani.   (15 s)
+  tools: [{'tool': 'list_cases', 'args': {'place': 'Gumani', 'band': 'High'}}]
+  A: There are no High-risk cases in Gumani.
+  citations: [] | invented: [] | stopped: None
+
+CHECKED AGAINST THE DATABASE (at the time of the AFTER run)
+  Upper East, band High: 41 (the answer said 41)
+  Northern, Gumani, band High: NR-TML-GUM-0002-2025, NR-TML-GUM-0004-2025, NR-TML-GUM-0009-2025 (the answer listed the same 3)
+  Upper East cases in Gumani: 0 (Gumani is in the Northern region; nothing from another region was shown)
+  UW-NND-0001-2025: the masked report contains [PHONE] (the number itself never reached the model)
+
+RESULT: before, 3 of 6 answered correctly (the count, the law without a citation, and "nothing in Gumani" for Upper East);
+        after, 6 of 6 correct in content; 2 cited by the model, and Python listed the sources under all 4 answers
+        that had any (a count and "no cases" have no case to cite).
+        Remaining weaknesses are listed in the README.
