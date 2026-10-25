@@ -30,6 +30,7 @@ from pydantic import ValidationError
 
 from app.llm.client import chat_with_llm, parse_json_object
 from app.rag.answer import NO_EVIDENCE, cited_labels
+from app.services import chat_store
 from app.services.masking import mask_keeping_names
 from app.tools.agents import AgentState, Tool, enforce_budget
 from app.tools.case_tools import make_case_tools
@@ -157,9 +158,10 @@ def references_in(result: Any) -> set[str]:
 
 # 4. THE LOOP
 def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = None,
-        history: list[dict[str, str]] | None = None) -> Reply:
-    """Answer one question for a user of `region`. `approved` is a tool call the user has said OK to."""
-    references = REFERENCE.findall(question.upper())      # found before masking, so a reference is never lost
+        history: list[dict[str, str]] | None = None, extra_refs: list[str] | None = None) -> Reply:
+    """Answer one question for a user of `region`. `approved` is a tool call the user has said OK to;
+    `extra_refs` are case references to look up first (the case a follow-up question is about)."""
+    references = (extra_refs or []) + REFERENCE.findall(question.upper())   # found before masking
     question, names = mask_keeping_names(question)        # the model only ever sees [NAME] and [PHONE]
     tools = {tool.name: tool for tool in make_case_tools(region) + [make_search_tool(region)]}
     state = AgentState(messages=[{"role": "system", "content": INSTRUCTIONS.format(tools=describe_tools(tools))},
@@ -222,3 +224,30 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
             state.messages.append({"role": "user", "content": f"The arguments for {name} were wrong ({problems}). "
                                    "Correct them and try again."})
             calls.append({"tool": name, "args": args, "error": problems})
+
+
+# 5. ONE CHAT TURN
+FOLLOW_UP = re.compile(r"\b(this|that|the same) (case|child|girl|boy|one)\b|\bexplain\b|\bfurther\b|\btell me more\b",
+                       re.I)
+
+
+def chat(conversation: str, question: str, region: str | None, *, approved: dict[str, Any] | None = None) -> Reply:
+    """One question in a conversation: the recent history is sent with it, and both are saved."""
+    history = chat_store.recent_messages(conversation)
+
+    # "this case": a follow-up with no reference uses the case of the last answer, if there was exactly one.
+    follow_up = []
+    if not REFERENCE.search(question.upper()) and FOLLOW_UP.search(question):
+        last = chat_store.last_case_refs(conversation)
+        follow_up = last if len(last) == 1 else []
+
+    reply = ask(question, region, approved=approved, history=history, extra_refs=follow_up)
+    # If Ollama fails, ask() raises an error and nothing is saved.
+    if reply.needs_approval:
+        return reply                        # waiting for the user's OK: saved only once answered
+
+    masked_question, _ = mask_keeping_names(question)
+    chat_store.add_user_message(conversation, region, masked_question)
+    chat_store.add_assistant_message(conversation, region, reply.text,
+                                     [s for s in reply.sources if REFERENCE.fullmatch(s)])
+    return reply

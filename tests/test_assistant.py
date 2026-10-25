@@ -157,3 +157,65 @@ def test_a_reference_survives_masking(run, monkeypatch):
     monkeypatch.setattr(assistant, "mask_keeping_names", lambda text: ("[PHONE] [NAME]", []))   # masking too much
     go([answer("High.")], question="Why is NR-SGN-SAG-0001-2025 High?")
     assert record["ran"] == [("show_case", "NR-SGN-SAG-0001-2025")]
+
+
+# ------------------------------------------------
+# One chat turn (chat memory and ask() replaced by fakes)
+# ------------------------------------------------
+
+@pytest.fixture
+def turn(monkeypatch):
+    saved, asked = [], []
+    store = {"last_refs": []}
+    monkeypatch.setattr(assistant.chat_store, "recent_messages", lambda c: [{"role": "user", "content": "earlier"}])
+    monkeypatch.setattr(assistant.chat_store, "last_case_refs", lambda c: store["last_refs"])
+    monkeypatch.setattr(assistant.chat_store, "add_user_message", lambda c, r, m: saved.append(("user", m)))
+    monkeypatch.setattr(assistant.chat_store, "add_assistant_message",
+                        lambda c, r, m, refs: saved.append(("assistant", m, refs)))
+    monkeypatch.setattr(assistant, "mask_keeping_names", lambda text: (text.replace("Ama Mensah", "[NAME]"), []))
+    reply = {"value": assistant.Reply("It is High.", sources=["NR-SGN-SAG-0001-2025", "policy_uncrc.pdf#chunk-3"])}
+    def fake_ask(question, region, approved=None, history=None, extra_refs=None):
+        asked.append({"question": question, "history": history, "extra_refs": extra_refs})
+        return reply["value"]
+    monkeypatch.setattr(assistant, "ask", fake_ask)
+    return saved, asked, store, reply
+
+
+def test_history_is_sent_and_both_messages_saved_masked(turn):
+    saved, asked, _, _ = turn
+    assistant.chat("c1", "Is there a case for Ama Mensah?", "northern")
+    assert asked[0]["history"] == [{"role": "user", "content": "earlier"}]
+    assert saved == [("user", "Is there a case for [NAME]?"),
+                     ("assistant", "It is High.", ["NR-SGN-SAG-0001-2025"])]      # case references only
+
+
+def test_this_case_uses_the_one_case_of_the_last_answer(turn):
+    _, asked, store, _ = turn
+    store["last_refs"] = ["NR-SGN-SAG-0001-2025"]
+    assistant.chat("c1", "Explain further why this case is High.", "northern")
+    assert asked[0]["extra_refs"] == ["NR-SGN-SAG-0001-2025"]
+
+
+def test_this_case_is_not_guessed_when_the_last_answer_had_several(turn):
+    _, asked, store, _ = turn
+    store["last_refs"] = ["NR-TML-GUM-0002-2025", "NR-TML-GUM-0004-2025"]
+    assistant.chat("c1", "Tell me more about this case.", "northern")
+    assert asked[0]["extra_refs"] == []
+
+
+def test_nothing_saved_while_waiting_for_the_ok(turn):
+    saved, _, _, reply = turn
+    reply["value"] = assistant.Reply("This looks up a child's name. Continue?",
+                                     needs_approval={"tool": "find_case_by_name", "args": {"name": "[NAME]"}})
+    assistant.chat("c1", "Is there a case for Ama Mensah?", "northern")
+    assert saved == []
+
+
+def test_nothing_saved_when_ollama_fails(turn, monkeypatch):
+    saved, _, _, _ = turn
+    def ollama_down(*args, **kwargs):
+        raise ConnectionError("Ollama is not running")
+    monkeypatch.setattr(assistant, "ask", ollama_down)
+    with pytest.raises(ConnectionError):
+        assistant.chat("c1", "How many High cases?", "northern")
+    assert saved == []
