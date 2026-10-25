@@ -1,0 +1,43 @@
+FULL LOAD: data -> intake (storage + queue) -> worker -> Postgres, run on 2026-10-24/25
+Command: python -m scripts.enqueue_data --all (with python worker.py running); worker log: evaluation/pipeline/full_load_worker.log
+
+FROM THE WORKER LOG:
+  first case saved 2026-10-24 22:04:36, last 2026-10-25 01:28:19: 3.4 hours
+  cases saved: 1103, on average 11.1 s per case
+  errors: 0
+  alert messages sent by the notifier: 431
+  queue now: {'waiting': 0, 'failed': 0}
+
+IN POSTGRES NOW (all cases, including those saved before this load):
+  channel   outcome                  cases
+  field     could_not_assess            82
+  field     High                       234
+  field     human_review                 5
+  field     Low                        183
+  field     Moderate                    93
+  field     No risk                    395
+  field     not_scored_incomplete        1
+  field     not_scored_no_consent       27
+  helpline  could_not_assess            32
+  helpline  High                        29
+  helpline  Low                         19
+  helpline  Moderate                     9
+  helpline  No risk                     12
+  upload    could_not_assess             6
+  upload    High                        12
+  upload    Low                         15
+  upload    No risk                     18
+  upload    not_scored_incomplete        1
+
+COULD NOT ASSESS, BY CHANNEL:
+  field       82 of 1020  (8%)
+  helpline    32 of  101  (32%)
+  upload       6 of   52  (12%)
+
+ALERTS:
+  review  open         92
+  urgent  open        301
+
+SEARCH CHUNKS:
+  case     1189
+  policy   1263
