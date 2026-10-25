@@ -61,3 +61,11 @@ def test_documents_masked_without_losing_evidence(file, label):
                 for part in name.split():
                     quote = re.sub(rf"\b{part}\b", "[NAME]", quote)
             assert quote.replace("[NAME] [NAME]", "[NAME]") in flat.replace("[NAME] [NAME]", "[NAME]")
+
+
+
+def test_mask_keeping_names_returns_the_names_it_removed():
+    from app.services.masking import mask_keeping_names
+    masked, names = mask_keeping_names("Do we have a case for the girl of Mrs Ama Mensah? Call 024 412 3456.")
+    assert "Ama" not in masked and "[NAME]" in masked and "[PHONE]" in masked
+    assert names == ["Ama Mensah"]

@@ -68,3 +68,14 @@ def mask(text: str, known_names: list[str] | None = None) -> str:
     operators = {entity: OperatorConfig("replace", {"new_value": placeholder})
                  for entity, placeholder in PLACEHOLDERS.items()}
     return AnonymizerEngine().anonymize(text=text, analyzer_results=findings, operators=operators).text
+
+
+def mask_keeping_names(text: str) -> tuple[str, list[str]]:
+    """Mask a question for the model, and return the names removed, in order.
+    The names stay in Python: they are never sent to the model or saved."""
+    if not text:
+        return text, []
+    findings = analyzer().analyze(text=text, entities=ENTITIES, language="en")
+    names = [re.sub(rf"^{TITLES}\s+", "", text[f.start:f.end]).strip()       # "Mrs Ama Mensah" -> "Ama Mensah"
+             for f in sorted(findings, key=lambda f: f.start) if f.entity_type == "PERSON"]
+    return mask(text), [name for name in dict.fromkeys(names) if name]
