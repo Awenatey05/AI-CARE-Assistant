@@ -44,4 +44,4 @@ WHAT THE CHECK SHOWS
   figure on marriage before 18. Beating: the welfare policy's figures on caning at home and school are found.
   Labour in another town: the Children's Act on child labour is found, but not the Human Trafficking Act 694,
   which is the closer law for recruiting a child away from home; a table of contents chunk (chunk-5) also
-  comes third. Scores are modest (0.42-0.57). Search quality is measured properly in the evaluation (Stage 9).
+  comes third. Scores are modest (0.42-0.57). Search quality is measured properly in the evaluation.
