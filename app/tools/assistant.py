@@ -1,7 +1,8 @@
 """The assistant: the model chooses tools, Python runs them, the model answers.
 
     question -> model: {"tool": ..., "args": ...} -> Tool.invoke (Pydantic check) -> Python -> result -> model
-             -> ... (within the budget) -> model: {"answer": ...} -> citation check -> reply
+             -> ... (within the budget) -> model: {"ready": true}
+             -> the answer, streamed piece by piece -> citation check, sources, counts -> saved
 
 Numbers and verdicts come from the case tools (the assessment made at intake),
 never from the model. A wrong argument, an unknown tool or a reply that is
@@ -24,12 +25,12 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, get_args
+from typing import Any, Iterator, get_args
 
 from pydantic import ValidationError
 
-from app.llm.client import chat_with_llm, parse_json_object
-from app.llm.prompts import ASSISTANT_PROMPT
+from app.llm.client import chat_with_llm, parse_json_object, stream_chat_with_llm
+from app.llm.prompts import ANSWER_PROMPT, ASSISTANT_PROMPT
 from app.rag.answer import NO_EVIDENCE, cited_labels
 from app.services import chat_store
 from app.services.masking import mask_keeping_names
@@ -101,7 +102,8 @@ class Reply:
     counts: list[str] = field(default_factory=list)   # what count_cases really counted, in words
 
     def with_sources(self) -> str:
-        shown = self.citations or self.sources[:10]
+        real = [c for c in self.citations if c not in self.invented_citations]   # never an invented source
+        shown = real or self.sources[:10]
         text = self.text + ("\n\nSources: " + ", ".join(f"[{s}]" for s in shown) if shown else "")
         for count in self.counts:
             text += f"\nCounted: {count}"
@@ -133,14 +135,17 @@ def references_in(result: Any) -> set[str]:
 
 
 # 4. THE LOOP
-def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = None,
-        history: list[dict[str, str]] | None = None, extra_refs: list[str] | None = None) -> Reply:
-    """Answer one question for a user of `region`. `approved` is a tool call the user has said OK to;
+def ask_stream(question: str, region: str | None, *, approved: dict[str, Any] | None = None,
+               history: list[dict[str, str]] | None = None,
+               extra_refs: list[str] | None = None) -> Iterator[str | Reply]:
+    """Answer one question for a user of `region`: yields the pieces of the answer as they are
+    written, then the checked Reply. `approved` is a tool call the user has said OK to;
     `extra_refs` are case references to look up first (the case a follow-up question is about)."""
     references = (extra_refs or []) + REFERENCE.findall(question.upper())   # found before masking
     question, names = mask_keeping_names(question)        # the model only ever sees [NAME] and [PHONE]
     tools = {tool.name: tool for tool in make_case_tools(region) + [make_search_tool(region)]}
-    state = AgentState(messages=[{"role": "system", "content": ASSISTANT_PROMPT.format(tools=describe_tools(tools), region=region or "all regions")},
+    state = AgentState(messages=[{"role": "system", "content": ASSISTANT_PROMPT.format(
+                                      tools=describe_tools(tools), region=region or "all regions")},
                                  *(history or []), {"role": "user", "content": question}])
     calls: list[dict[str, Any]] = []
     allowed: set[str] = set()
@@ -160,6 +165,21 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
                                f"{json.dumps(result, default=str, ensure_ascii=False)}"})
         return result
 
+    def finished(text: str) -> Reply:
+        text = text.strip() or NO_EVIDENCE
+        citations = cited_labels(text)
+        return Reply(text, calls, citations, [c for c in citations if c not in allowed], sources=sources,
+                     counts=counts)
+
+    def write_answer() -> Iterator[str | Reply]:
+        # The answer is written as plain text and streamed; the full text is checked at the end.
+        state.messages.append({"role": "user", "content": ANSWER_PROMPT})
+        collected = []
+        for piece in stream_chat_with_llm(state.messages):
+            collected.append(piece)
+            yield piece
+        yield finished("".join(collected))
+
     for reference in dict.fromkeys(references):                              # guard: look it up first
         run("show_case", {"case_ref": reference})
 
@@ -167,7 +187,8 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
         try:
             enforce_budget(state)
         except RuntimeError as reason:
-            return Reply(COULD_NOT_FINISH, calls, stopped_reason=str(reason), sources=sources, counts=counts)
+            yield Reply(COULD_NOT_FINISH, calls, stopped_reason=str(reason), sources=sources, counts=counts)
+            return
         state.steps += 1
         reply = chat_with_llm(state.messages, format="json")
         state.messages.append({"role": "assistant", "content": reply.text})
@@ -177,11 +198,15 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
             state.messages.append({"role": "user", "content": "Reply with ONE JSON object only."})
             continue
 
-        if "answer" in choice:
-            text = str(choice["answer"]).strip() or NO_EVIDENCE
-            citations = cited_labels(text)
-            return Reply(text, calls, citations, [c for c in citations if c not in allowed], sources=sources,
-                         counts=counts)
+        if choice.get("ready"):
+            yield from write_answer()
+            return
+
+        if "answer" in choice:                    # the model answered at once: shown whole
+            text = str(choice["answer"])
+            yield text
+            yield finished(text)
+            return
 
         name, args = choice.get("tool"), choice.get("args") or {}
         if name in tools:
@@ -190,10 +215,14 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
             state.messages.append({"role": "user", "content": f"There is no tool called {name!r}. "
                                    f"Use one of: {', '.join(tools)}."})
             continue
+        if {"tool": name, "args": args} in [{"tool": c["tool"], "args": c["args"]} for c in calls if "error" not in c]:
+            yield from write_answer()           # guard: the same call again means the result is already there
+            return
         tool = tools[name]
         if tool.requires_approval and approved != {"tool": name, "args": args}:
-            return Reply(f"This looks up a child's name ({name}). Continue?", calls,
-                         needs_approval={"tool": name, "args": args}, sources=sources)
+            yield Reply(f"This looks up a child's name ({name}). Continue?", calls,
+                        needs_approval={"tool": name, "args": args}, sources=sources)
+            return
         real_args = args
         if name == "find_case_by_name" and names and "[NAME]" in str(args.get("name", "")):
             real_args = {**args, "name": " ".join(names)}  # the real name goes to the database, not the model
@@ -206,13 +235,25 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
             calls.append({"tool": name, "args": args, "error": problems})
 
 
+def last_reply(items: Iterator[str | Reply]) -> Reply:
+    """Run a stream to the end and keep only the checked Reply."""
+    return [item for item in items if isinstance(item, Reply)][-1]
+
+
+def ask(question: str, region: str | None, **options: Any) -> Reply:
+    """The same as ask_stream, without streaming: the checked Reply only."""
+    return last_reply(ask_stream(question, region, **options))
+
+
 # 5. ONE CHAT TURN
 FOLLOW_UP = re.compile(r"\b(this|that|the same) (case|child|girl|boy|one)\b|\bexplain\b|\bfurther\b|\btell me more\b",
                        re.I)
 
 
-def chat(conversation: str, question: str, region: str | None, *, approved: dict[str, Any] | None = None) -> Reply:
-    """One question in a conversation: the recent history is sent with it, and both are saved."""
+def chat_stream(conversation: str, question: str, region: str | None, *,
+                approved: dict[str, Any] | None = None) -> Iterator[str | Reply]:
+    """One chat turn, streamed: the pieces of the answer, then the checked Reply.
+    The recent history is sent with the question; both are saved after the last piece."""
     history = chat_store.recent_messages(conversation)
 
     # "this case": a follow-up with no reference uses the case of the last answer, if there was exactly one.
@@ -221,13 +262,21 @@ def chat(conversation: str, question: str, region: str | None, *, approved: dict
         last = chat_store.last_case_refs(conversation)
         follow_up = last if len(last) == 1 else []
 
-    reply = ask(question, region, approved=approved, history=history, extra_refs=follow_up)
-    # If Ollama fails, ask() raises an error and nothing is saved.
-    if reply.needs_approval:
-        return reply                        # waiting for the user's OK: saved only once answered
+    reply = None
+    for item in ask_stream(question, region, approved=approved, history=history, extra_refs=follow_up):
+        yield item
+        if isinstance(item, Reply):
+            reply = item
+    # If Ollama fails, ask_stream raises an error and nothing is saved.
+    if reply is None or reply.needs_approval:
+        return                              # waiting for the user's OK: saved only once answered
 
     masked_question, _ = mask_keeping_names(question)
     chat_store.add_user_message(conversation, region, masked_question)
     chat_store.add_assistant_message(conversation, region, reply.text,
                                      [s for s in reply.sources if REFERENCE.fullmatch(s)])
-    return reply
+
+
+def chat(conversation: str, question: str, region: str | None, **options: Any) -> Reply:
+    """The same as chat_stream, without streaming: the checked Reply only."""
+    return last_reply(chat_stream(conversation, question, region, **options))

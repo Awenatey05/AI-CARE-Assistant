@@ -53,6 +53,7 @@ def run(monkeypatch):
             record["sent"].append([m["content"] for m in messages])
             return Generation(next(replies), "llama3.2", 1.0)
         monkeypatch.setattr(assistant, "chat_with_llm", fake_chat)
+        monkeypatch.setattr(assistant, "stream_chat_with_llm", lambda messages: iter(["The streamed answer."]))
         return assistant.ask(question, "upper_east", **options)
     return go, record
 
@@ -105,7 +106,8 @@ def test_name_lookup_waits_for_the_ok(run):
 
 def test_the_budget_stops_a_loop(run):
     go, record = run
-    reply = go([tool("count_cases")] * 10)
+    bands = ["High", "Low", "Moderate", "No risk", "High", "Low"]
+    reply = go([tool("count_cases", band=band) for band in bands])       # a different call each time
     assert reply.text == assistant.COULD_NOT_FINISH and reply.stopped_reason == "tool-call budget exhausted"
     assert len(record["ran"]) == 4
 
@@ -174,10 +176,10 @@ def turn(monkeypatch):
                         lambda c, r, m, refs: saved.append(("assistant", m, refs)))
     monkeypatch.setattr(assistant, "mask_keeping_names", lambda text: (text.replace("Ama Mensah", "[NAME]"), []))
     reply = {"value": assistant.Reply("It is High.", sources=["NR-SGN-SAG-0001-2025", "policy_uncrc.pdf#chunk-3"])}
-    def fake_ask(question, region, approved=None, history=None, extra_refs=None):
+    def fake_ask_stream(question, region, approved=None, history=None, extra_refs=None):
         asked.append({"question": question, "history": history, "extra_refs": extra_refs})
-        return reply["value"]
-    monkeypatch.setattr(assistant, "ask", fake_ask)
+        yield reply["value"]
+    monkeypatch.setattr(assistant, "ask_stream", fake_ask_stream)
     return saved, asked, store, reply
 
 
@@ -215,7 +217,7 @@ def test_nothing_saved_when_ollama_fails(turn, monkeypatch):
     saved, _, _, _ = turn
     def ollama_down(*args, **kwargs):
         raise ConnectionError("Ollama is not running")
-    monkeypatch.setattr(assistant, "ask", ollama_down)
+    monkeypatch.setattr(assistant, "ask_stream", ollama_down)
     with pytest.raises(ConnectionError):
         assistant.chat("c1", "How many High cases?", "northern")
     assert saved == []
@@ -238,3 +240,61 @@ def test_the_prompt_tells_the_model_the_users_region(run):
     go, record = run
     go([answer("One region.")])
     assert "user's region (upper_east)" in record["sent"][0][0]
+
+
+
+# ------------------------------------------------
+# Streaming: the answer arrives piece by piece, and is checked and saved at the end
+# ------------------------------------------------
+
+def test_ready_then_the_answer_is_streamed_and_checked(run, monkeypatch):
+    go, record = run
+    pieces = ["There are 26 ", "High cases ", "[UE-BLS-SAN-0002-2026]", " and [NR-FAKE-0001-2026]."]
+    sent_for_answer = []
+    def fake_stream(messages):
+        sent_for_answer.append(messages[-1]["content"])
+        yield from pieces
+    monkeypatch.setattr(assistant, "stream_chat_with_llm", fake_stream)
+    replies = iter([tool("count_cases", band="High"), json.dumps({"ready": True})])
+    monkeypatch.setattr(assistant, "chat_with_llm", lambda messages, format=None: Generation(next(replies), "m", 1.0))
+    items = list(assistant.ask_stream("How many High cases?", "upper_east"))
+    assert items[:-1] == pieces                                       # each piece, as it arrives
+    reply = items[-1]
+    assert reply.text == "".join(pieces)                              # the full text, at the end
+    assert reply.invented_citations == ["NR-FAKE-0001-2026"]          # checked after the last piece
+    assert "plain text, not JSON" in sent_for_answer[0]
+
+
+def test_ask_gives_only_the_checked_reply(run):
+    go, _ = run
+    reply = go([tool("count_cases", band="High"), answer("26.")])
+    assert isinstance(reply, assistant.Reply) and reply.text == "26."
+
+
+def test_the_turn_is_saved_only_after_the_last_piece(turn, monkeypatch):
+    saved, _, _, reply = turn
+    def pieces(question, region, approved=None, history=None, extra_refs=None):
+        yield "It is "
+        assert saved == []                                            # nothing saved while it is written
+        yield "High."
+        yield assistant.Reply("It is High.", sources=["NR-SGN-SAG-0001-2025"])
+    monkeypatch.setattr(assistant, "ask_stream", pieces)
+    items = list(assistant.chat_stream("c1", "Why is it High?", "northern"))
+    assert items[:2] == ["It is ", "High."] and saved[-1] == ("assistant", "It is High.", ["NR-SGN-SAG-0001-2025"])
+
+
+
+def test_the_same_tool_call_again_leads_to_the_answer(run):
+    go, record = run
+    reply = go([tool("count_cases", band="High"), tool("count_cases", band="High")])
+    assert reply.text == "The streamed answer." and reply.stopped_reason is None
+    assert record["ran"] == [("count_cases", "High")]                  # the tool ran once
+
+
+
+def test_an_invented_citation_is_never_shown_as_a_source():
+    reply = assistant.Reply("Six regions [NR-TML-...].", citations=["NR-TML-..."], invented_citations=["NR-TML-..."],
+                            sources=[])
+    assert "Sources" not in reply.with_sources()
+    mixed = assistant.Reply("See [NR-1] and [NR-FAKE].", citations=["NR-1", "NR-FAKE"], invented_citations=["NR-FAKE"])
+    assert mixed.with_sources().endswith("Sources: [NR-1]")

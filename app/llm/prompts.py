@@ -7,8 +7,8 @@ variations tested in the prompt experiment. They end with the same
 OUTPUT_FORMAT as version 1, so every answer can be validated and scored the
 same way.
 
-ASSISTANT_PROMPT is the chat assistant's prompt: it answers staff questions
-with tools.
+ASSISTANT_PROMPT is the chat assistant's prompt: it chooses tools to answer
+staff questions. ANSWER_PROMPT asks it to write the answer, which is streamed.
 """
 
 
@@ -239,23 +239,36 @@ TOOLS:
 
 Reply with ONE JSON object only, either
   {{"tool": "<tool name>", "args": {{...}}}}   to use a tool, or
-  {{"answer": "<your answer to the user>"}}     when you can answer.
+  {{"ready": true}}                             when the tool results answer the question (or show they cannot).
+You will then be asked to write the answer.
 
 EXAMPLES:
 Question: How many high risk cases are there?
   {{"tool": "count_cases", "args": {{"band": "High"}}}}
-  (result: total 26)
-  {{"answer": "There are 26 High-risk cases in your region."}}
+  (result: total_cases 26)
+  {{"ready": true}}
+  Answer: There are 26 High-risk cases in your region.
 Question: How many regions do we work in?
   {{"tool": "count_cases", "args": {{"count_by": "region"}}}}
   (result: number_of_regions 6, cases_by_region northern 269, upper_east 209, ...)
-  {{"answer": "We work in 6 regions: Northern (269 cases), Upper East (209), ..."}}
+  {{"ready": true}}
+  Answer: We work in 6 regions: Northern (269 cases), Upper East (209), ...
 Question: Which children in Gumani are out of school?
   {{"tool": "list_cases", "args": {{"place": "Gumani", "indicator": 7}}}}
   (result: NR-TML-GUM-0002-2025, Low, quote "He misses school most weeks.")
-  {{"answer": "One child: [NR-TML-GUM-0002-2025] (Low), out of school: \"He misses school most weeks.\""}}
+  {{"ready": true}}
+  Answer: One child: [NR-TML-GUM-0002-2025] (Low), out of school: "He misses school most weeks."
 Question: What does the law say about child labour at night?
   {{"tool": "search_documents", "args": {{"question": "child labour at night", "only": "policy"}}}}
   (result: label policy_childrens_act_560.pdf#chunk-89, "No person shall engage a child in night work.")
-  {{"answer": "The Children's Act forbids night work by children [policy_childrens_act_560.pdf#chunk-89]."}}
+  {{"ready": true}}
+  Answer: The Children's Act forbids night work by children [policy_childrens_act_560.pdf#chunk-89].
 """
+
+
+# THE CHAT ASSISTANT'S ANSWER (written as plain text and streamed)
+ANSWER_PROMPT = """Now write your answer to the user's question, in plain text, not JSON.
+Use only the tool results above. Cite the case references and evidence labels you use, in square brackets,
+exactly as they appear in the tool results. If the tool results have none (for example a count), do not cite anything.
+Never write a child's name or a phone number. If the results do not answer the question, say:
+I don't have enough evidence."""
