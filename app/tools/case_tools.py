@@ -46,8 +46,7 @@ VIDEO = {".mp4", ".mov"}
 class CaseFilters(BaseModel):
     band: Band | None = None
     indicator: int | None = Field(default=None, ge=1, le=10, description="indicator number 1-10")
-    district: str | None = None
-    community: str | None = None
+    place: str | None = Field(default=None, description="a district or community name, e.g. Gumani or Tamale")
     channel: Channel | None = None
     status: Status | None = None
 
@@ -74,10 +73,11 @@ def where(region: str | None, filters: dict[str, Any]) -> tuple[str, dict[str, A
         if filters.get(column):
             parts.append(f"c.{column} = %({column})s")
             params[column] = filters[column]
-    for column in ("district", "community"):
-        if filters.get(column):
-            parts.append(f"lower(c.{column}) = lower(%({column})s)")
-            params[column] = filters[column].strip()
+    if filters.get("place"):
+        # One place argument matches a district or a community, from the start of the name,
+        # so "Tamale" also finds "Tamale Metropolitan".
+        parts.append("(c.district ILIKE %(place)s OR c.community ILIKE %(place)s)")
+        params["place"] = filters["place"].strip() + "%"
     if filters.get("indicator"):
         parts.append("EXISTS (SELECT 1 FROM indicators i WHERE i.case_id = c.id AND i.indicator = %(indicator)s "
                      "AND NOT i.observed)")
@@ -174,8 +174,8 @@ def find_case_by_name(region: str | None, name: str) -> dict[str, Any]:
 def make_case_tools(region: str | None) -> list[Tool]:
     """The case tools for one user's region (None only for the super administrator)."""
     return [
-        Tool("count_cases", "Count cases, optionally by band, indicator (1-10), district, community, channel or "
-             "status. Use it for every 'how many' question.", CaseFilters,
+        Tool("count_cases", "Count cases, optionally by band, indicator (1-10), place (district or community), "
+             "channel or status. Use it for every 'how many' question.", CaseFilters,
              lambda **f: count_cases(region, **f)),
         Tool("list_cases", "List cases (references, band, score, place), most serious first, with the same filters "
              "as count_cases. With an indicator, each case's supporting quote is included.", ListArgs,

@@ -70,10 +70,11 @@ def test_count_by_band_inside_the_region_only(tools):
     assert (result["region"], result["total"], result["by_band"]) == ("test_north", 2, {"High": 2})
 
 
-def test_count_by_district_and_community_ignores_capitals(tools):
+def test_place_matches_a_community_or_a_district_ignoring_capitals(tools):
     t, _ = tools
-    assert t["count_cases"].invoke({"community": "gumani"})["total"] == 2
-    assert t["count_cases"].invoke({"district": "Savelugu", "band": "High"})["total"] == 1
+    assert t["count_cases"].invoke({"place": "gumani"})["total"] == 2
+    assert t["count_cases"].invoke({"place": "Savelugu", "band": "High"})["total"] == 1
+    assert t["count_cases"].invoke({"place": "Tam"})["total"] == 2          # the start of "Tamale"
 
 
 def test_a_region_from_the_model_is_ignored(tools):
@@ -83,7 +84,7 @@ def test_a_region_from_the_model_is_ignored(tools):
 
 def test_list_by_indicator_most_serious_first_with_quotes(tools):
     t, _ = tools
-    result = t["list_cases"].invoke({"indicator": 7, "community": "Gumani"})
+    result = t["list_cases"].invoke({"indicator": 7, "place": "Gumani"})
     assert [c["band"] for c in result["cases"]] == ["High", "Low"]
     assert result["cases"][1]["quote"] == "He misses school most weeks."
 
