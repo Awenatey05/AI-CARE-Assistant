@@ -195,3 +195,57 @@ def test_alerts_database_down_gives_503(alerts_api, monkeypatch):
         raise ConnectionError("Postgres is not running")
     monkeypatch.setattr(alerts.notifier, "open_alerts", down)
     assert client.get("/alerts", headers=KEY).status_code == 503
+
+
+# ------------------------------------------------
+# The chat route (the assistant replaced by a fake)
+# ------------------------------------------------
+
+import json as json_lines  # noqa: E402
+
+from app.api import chat as chat_api  # noqa: E402
+from app.tools.assistant import Reply  # noqa: E402
+
+
+@pytest.fixture
+def chat_client(monkeypatch):
+    asked = []
+    monkeypatch.setattr(office, "API_KEY", "test-key")
+    monkeypatch.setattr(chat_api, "check_ollama", lambda: True)
+    def fake_stream(conversation, question, region, approved=None):
+        asked.append((conversation, question, region, approved))
+        yield "There are 26 "
+        yield "High cases."
+        yield Reply("There are 26 High cases.", sources=["UE-BLS-SAN-0002-2026"], counts=["26 cases (upper_east)"])
+    monkeypatch.setattr(chat_api, "chat_stream", fake_stream)
+    return TestClient(main.app), asked
+
+
+def test_chat_streams_pieces_then_the_checked_reply(chat_client):
+    client, asked = chat_client
+    response = client.post("/chat", json={"question": "How many High cases?", "region": "Upper East"}, headers=KEY)
+    lines = [json_lines.loads(l) for l in response.text.splitlines()]
+    assert response.status_code == 200 and response.headers["content-type"].startswith("application/x-ndjson")
+    assert [l["piece"] for l in lines[:2]] == ["There are 26 ", "High cases."]
+    reply = lines[-1]["reply"]
+    assert reply["sources"] == ["UE-BLS-SAN-0002-2026"] and reply["counts"] == ["26 cases (upper_east)"]
+    assert asked[0][2] == "upper_east" and reply["conversation"] == asked[0][0]     # a new conversation
+
+
+def test_chat_without_a_region_is_the_super_administrator(chat_client):
+    client, asked = chat_client
+    client.post("/chat", json={"question": "How many regions?", "conversation": "c1"}, headers=KEY)
+    assert asked[0][:3] == ("c1", "How many regions?", None)
+
+
+def test_chat_needs_the_api_key_and_a_known_region(chat_client):
+    client, asked = chat_client
+    assert client.post("/chat", json={"question": "Hello there"}).status_code == 401
+    assert client.post("/chat", json={"question": "Hello", "region": "Atlantis"}, headers=KEY).status_code == 422
+    assert asked == []
+
+
+def test_chat_when_ollama_is_down(chat_client, monkeypatch):
+    client, _ = chat_client
+    monkeypatch.setattr(chat_api, "check_ollama", lambda: False)
+    assert client.post("/chat", json={"question": "Hello there"}, headers=KEY).status_code == 503
