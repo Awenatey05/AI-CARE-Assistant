@@ -219,3 +219,22 @@ def test_nothing_saved_when_ollama_fails(turn, monkeypatch):
     with pytest.raises(ConnectionError):
         assistant.chat("c1", "How many High cases?", "northern")
     assert saved == []
+
+
+
+def test_counted_line_shows_what_the_tool_really_counted():
+    reply = assistant.Reply("We work in 6 regions.", counts=[assistant.describe_count(
+        {"count_by": "region", "number_of_regions": 6, "total_cases": 1173, "region": "all regions", "filters": {}})])
+    assert reply.with_sources() == "We work in 6 regions.\nCounted: 6 regions, 1173 cases (all regions)"
+    by_band = assistant.describe_count({"count_by": "band", "total_cases": 102, "region": "northern",
+                                        "filters": {"band": "No risk"}})
+    assert by_band == "102 cases (northern, band No risk)"
+    one = assistant.describe_count({"count_by": "region", "number_of_regions": 1, "total_cases": 269,
+                                    "region": "northern", "filters": {}})
+    assert one == "1 region, 269 cases (northern)"
+
+
+def test_the_prompt_tells_the_model_the_users_region(run):
+    go, record = run
+    go([answer("One region.")])
+    assert "user's region (upper_east)" in record["sent"][0][0]

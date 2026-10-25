@@ -29,6 +29,7 @@ from typing import Any, get_args
 from pydantic import ValidationError
 
 from app.llm.client import chat_with_llm, parse_json_object
+from app.llm.prompts import ASSISTANT_PROMPT
 from app.rag.answer import NO_EVIDENCE, cited_labels
 from app.services import chat_store
 from app.services.masking import mask_keeping_names
@@ -38,44 +39,6 @@ from app.tools.search_tool import make_search_tool
 
 # 1. INSTRUCTIONS
 COULD_NOT_FINISH = "I could not finish this; please ask in a simpler way."
-
-INSTRUCTIONS = """You are the AI CARE Assistant for child-protection staff in Ghana.
-You answer questions about the cases in the user's region and about the law, using ONLY the tools below.
-
-RULES:
-- For every number, list, verdict or reason, call a tool. Never guess or count yourself.
-- Answer only from the tool results. If they do not answer the question, say: I don't have enough evidence.
-- Cite every case reference and evidence label you use in square brackets, e.g. [NR-TML-GUM-0012-2026] or
-  [policy_childrens_act_560.pdf#chunk-16]. Do not invent references or labels.
-- Never write a child's name, a phone number or other personal details. If a report has a phone number or
-  photos, say so and tell the user to open the case in the dashboard.
-- A band, indicator or alert was decided when the case was assessed; report it with its quote, do not judge again.
-
-- Give only the arguments the question asks for. Leave out every other argument.
-- If the question names a case reference, use show_case (its result may already be given below).
-- A place (village, town or district) goes in "place".
-
-TOOLS:
-{tools}
-
-Reply with ONE JSON object only, either
-  {{"tool": "<tool name>", "args": {{...}}}}   to use a tool, or
-  {{"answer": "<your answer to the user>"}}     when you can answer.
-
-EXAMPLES:
-Question: How many high risk cases are there?
-  {{"tool": "count_cases", "args": {{"band": "High"}}}}
-  (result: total 26)
-  {{"answer": "There are 26 High-risk cases in your region."}}
-Question: Which children in Gumani are out of school?
-  {{"tool": "list_cases", "args": {{"place": "Gumani", "indicator": 7}}}}
-  (result: NR-TML-GUM-0002-2025, Low, quote "He misses school most weeks.")
-  {{"answer": "One child: [NR-TML-GUM-0002-2025] (Low), out of school: \"He misses school most weeks.\""}}
-Question: What does the law say about child labour at night?
-  {{"tool": "search_documents", "args": {{"question": "child labour at night", "only": "policy"}}}}
-  (result: label policy_childrens_act_560.pdf#chunk-89, "No person shall engage a child in night work.")
-  {{"answer": "The Children's Act forbids night work by children [policy_childrens_act_560.pdf#chunk-89]."}}
-"""
 
 
 def choices(tool: Tool, name: str) -> list[str]:
@@ -118,7 +81,7 @@ def clean_args(tool: Tool, args: dict[str, Any]) -> dict[str, Any]:
                 continue
             allowed = choices(tool, name)
             plain = value.lower().replace(" risk", "").replace("_", " ")
-            value = next((a for a in allowed if a.lower() == plain), value)
+            value = next((a for a in allowed if a.lower() in (plain, plain.rstrip("s"))), value)   # "regions"
             if tool.args_model.model_fields[name].annotation in (int, int | None) and not value.isdigit():
                 continue        # e.g. "1-10" means any indicator
         cleaned[name] = value
@@ -135,10 +98,23 @@ class Reply:
     needs_approval: dict[str, Any] | None = None     # the tool call waiting for the user's OK
     stopped_reason: str | None = None
     sources: list[str] = field(default_factory=list)  # every reference and label the tools returned
+    counts: list[str] = field(default_factory=list)   # what count_cases really counted, in words
 
     def with_sources(self) -> str:
         shown = self.citations or self.sources[:10]
-        return self.text + ("\n\nSources: " + ", ".join(f"[{s}]" for s in shown) if shown else "")
+        text = self.text + ("\n\nSources: " + ", ".join(f"[{s}]" for s in shown) if shown else "")
+        for count in self.counts:
+            text += f"\nCounted: {count}"
+        return text
+
+
+def describe_count(result: dict[str, Any]) -> str:
+    """A count in words, from the tool's own result: "6 regions, 1173 cases (all regions)"."""
+    by = result["count_by"]
+    number = result[f"number_of_{by}s"] if by != "band" else None
+    what = f"{number} {by}{'' if number == 1 else 's'}, " if number is not None else ""
+    filters = ", ".join(f"{k} {v}" for k, v in result["filters"].items())
+    return f"{what}{result['total_cases']} cases ({result['region']}{', ' + filters if filters else ''})"
 
 
 def references_in(result: Any) -> set[str]:
@@ -164,11 +140,12 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
     references = (extra_refs or []) + REFERENCE.findall(question.upper())   # found before masking
     question, names = mask_keeping_names(question)        # the model only ever sees [NAME] and [PHONE]
     tools = {tool.name: tool for tool in make_case_tools(region) + [make_search_tool(region)]}
-    state = AgentState(messages=[{"role": "system", "content": INSTRUCTIONS.format(tools=describe_tools(tools))},
+    state = AgentState(messages=[{"role": "system", "content": ASSISTANT_PROMPT.format(tools=describe_tools(tools), region=region or "all regions")},
                                  *(history or []), {"role": "user", "content": question}])
     calls: list[dict[str, Any]] = []
     allowed: set[str] = set()
     sources: list[str] = []
+    counts: list[str] = []
 
     def run(name: str, args: dict[str, Any], *, ok: bool = False, shown: dict[str, Any] | None = None) -> Any:
         state.tool_calls += 1
@@ -177,6 +154,8 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
         found = references_in(result)
         allowed.update(found)
         sources.extend(sorted(f for f in found if f not in sources))
+        if name == "count_cases" and isinstance(result, dict) and "total_cases" in result:
+            counts.append(describe_count(result))
         state.messages.append({"role": "user", "content": f"TOOL RESULT ({name}):\n"
                                f"{json.dumps(result, default=str, ensure_ascii=False)}"})
         return result
@@ -188,7 +167,7 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
         try:
             enforce_budget(state)
         except RuntimeError as reason:
-            return Reply(COULD_NOT_FINISH, calls, stopped_reason=str(reason), sources=sources)
+            return Reply(COULD_NOT_FINISH, calls, stopped_reason=str(reason), sources=sources, counts=counts)
         state.steps += 1
         reply = chat_with_llm(state.messages, format="json")
         state.messages.append({"role": "assistant", "content": reply.text})
@@ -201,7 +180,8 @@ def ask(question: str, region: str | None, *, approved: dict[str, Any] | None = 
         if "answer" in choice:
             text = str(choice["answer"]).strip() or NO_EVIDENCE
             citations = cited_labels(text)
-            return Reply(text, calls, citations, [c for c in citations if c not in allowed], sources=sources)
+            return Reply(text, calls, citations, [c for c in citations if c not in allowed], sources=sources,
+                         counts=counts)
 
         name, args = choice.get("tool"), choice.get("args") or {}
         if name in tools:
