@@ -91,3 +91,15 @@ CREATE TABLE IF NOT EXISTS case_numbers (
     last_number  INTEGER NOT NULL,
     PRIMARY KEY (place, year)
 );
+
+-- Chat conversations (Stage 7). Questions are saved masked: never a child's name.
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id          SERIAL PRIMARY KEY,
+    session_id  TEXT NOT NULL,
+    region      TEXT,
+    role        TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+    content     TEXT NOT NULL,
+    case_refs   TEXT[] NOT NULL DEFAULT '{}',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_session ON chat_messages (session_id, id);
