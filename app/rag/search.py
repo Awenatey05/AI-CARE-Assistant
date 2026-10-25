@@ -1,9 +1,8 @@
 """Search: the chunks closest in meaning to a question (pgvector).
 
-Does the job of the course's SemanticIndex.search(k, min_score), but in
-Postgres: the question is embedded and compared with every chunk by cosine
-similarity, using the HNSW index. Results are SearchHit objects, so the
-course's format_context() and grounded_prompt() can use them unchanged.
+Searches in Postgres: the question is embedded and compared with every chunk
+by cosine similarity, using the HNSW index. Results are SearchHit objects,
+so format_context() and grounded_prompt() can use them.
 
 With a region, only that region's cases are searched; policies are always
 included, because the law applies everywhere.

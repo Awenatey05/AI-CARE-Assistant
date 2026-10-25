@@ -1,7 +1,7 @@
 """Ollama client: the only place the application talks to the LLM.
 
-Based on the course OllamaProvider and parse_json_object. Settings come
-from config.py (.env), so the model can be changed without touching code.
+Settings come from config.py (.env), so the model can be changed without
+touching code.
 """
 
 from __future__ import annotations

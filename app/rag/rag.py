@@ -1,4 +1,4 @@
-"""Chunking and the grounded prompt (from the course's rag.py).
+"""Chunking and the grounded prompt.
 
 Texts are cut into pieces of 120 words, each overlapping the one before by
 25 words, so a sentence on a boundary is never lost. Each piece gets an id

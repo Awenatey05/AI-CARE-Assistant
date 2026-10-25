@@ -36,7 +36,7 @@ def test_five_chunks_however_weak_by_default(fake):
     assert fake["searched"] == [("Is forced marriage legal?", 5, -1.0, "upper_east")]
 
 
-def test_prompt_is_the_course_grounded_prompt_with_labels(fake):
+def test_prompt_is_the_grounded_prompt_with_labels(fake):
     fake["reply"] = "x"
     answer("Is forced marriage legal?")
     prompt = fake["prompts"][0]
