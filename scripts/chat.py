@@ -20,7 +20,20 @@ import requests
 
 from app.llm.client import check_ollama
 from app.services import chat_store
-from app.tools.assistant import chat
+from app.tools.assistant import Reply, chat_stream
+
+
+def show_answer(items) -> Reply:
+    """Print the answer as it is written; return the checked reply."""
+    print("\nAI CARE Assistant:")
+    streamed = False
+    for item in items:
+        if isinstance(item, Reply):
+            if not streamed and not item.needs_approval:
+                print(item.text, end="")          # nothing was streamed: print the whole answer
+            return item
+        streamed = True
+        print(item, end="", flush=True)
 
 
 def run_chat(region: str | None) -> None:
@@ -65,15 +78,15 @@ def run_chat(region: str | None) -> None:
             continue
 
         try:
-            reply = chat(conversation, prompt, region)
+            reply = show_answer(chat_stream(conversation, prompt, region))
 
             # Finding a case by name needs the user's OK first.
             if reply.needs_approval:
-                print(f"\n{reply.text}")
+                print(reply.text)
                 if input("Continue? (yes/no): ").strip().lower() not in ("yes", "y"):
                     print("Not searched.\n")
                     continue
-                reply = chat(conversation, prompt, region, approved=reply.needs_approval)
+                reply = show_answer(chat_stream(conversation, prompt, region, approved=reply.needs_approval))
 
         except requests.exceptions.ConnectionError:
             print("\nERROR: Could not connect to Ollama.")
@@ -83,8 +96,7 @@ def run_chat(region: str | None) -> None:
             print(f"\nAPI ERROR: {error}")
             continue
 
-        print("\nAI CARE Assistant:")
-        print(reply.with_sources())
+        print(reply.with_sources()[len(reply.text):])      # sources and counts, after the streamed answer
         print()
 
 
