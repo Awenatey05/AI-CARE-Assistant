@@ -67,19 +67,19 @@ def tools(monkeypatch):
 def test_count_by_band_inside_the_region_only(tools):
     t, _ = tools
     result = t["count_cases"].invoke({"band": "High"})
-    assert (result["region"], result["total"], result["by_band"]) == ("test_north", 2, {"High": 2})
+    assert (result["region"], result["total_cases"], result["cases_by_band"]) == ("test_north", 2, {"High": 2})
 
 
 def test_place_matches_a_community_or_a_district_ignoring_capitals(tools):
     t, _ = tools
-    assert t["count_cases"].invoke({"place": "gumani"})["total"] == 2
-    assert t["count_cases"].invoke({"place": "Savelugu", "band": "High"})["total"] == 1
-    assert t["count_cases"].invoke({"place": "Tam"})["total"] == 2          # the start of "Tamale"
+    assert t["count_cases"].invoke({"place": "gumani"})["total_cases"] == 2
+    assert t["count_cases"].invoke({"place": "Savelugu", "band": "High"})["total_cases"] == 1
+    assert t["count_cases"].invoke({"place": "Tam"})["total_cases"] == 2    # the start of "Tamale"
 
 
 def test_a_region_from_the_model_is_ignored(tools):
     t, _ = tools
-    assert t["count_cases"].invoke({"band": "High", "region": "test_south"})["total"] == 2   # still test_north
+    assert t["count_cases"].invoke({"band": "High", "region": "test_south"})["total_cases"] == 2   # still test_north
 
 
 def test_list_by_indicator_most_serious_first_with_quotes(tools):
@@ -126,3 +126,25 @@ def test_finding_by_name_gives_references_in_the_region_only(tools):
                                                                                      "test-tool-3"))
     assert "Ama" not in str(result["cases"])
     assert t["find_case_by_name"].invoke({"name": "Kofi"}, approved=True)["found"] == 0
+
+
+
+def test_a_team_leader_counts_one_region_and_its_communities(tools):
+    t, _ = tools
+    regions = t["count_cases"].invoke({"count_by": "region"})
+    assert (regions["number_of_regions"], regions["cases_by_region"]) == (1, {"test_north": 3})
+    communities = t["count_cases"].invoke({"count_by": "community"})
+    assert communities["cases_by_community"] == {"Gumani": 2, "Diare": 1}
+
+
+def test_the_super_administrator_counts_every_region(tools):
+    every = {t.name: t for t in case_tools.make_case_tools(None)}
+    result = every["count_cases"].invoke({"count_by": "region"})
+    assert {"test_north", "test_south"} <= set(result["cases_by_region"])
+    assert result["number_of_regions"] == len(result["cases_by_region"]) and result["region"] == "all regions"
+
+
+def test_count_by_only_accepts_its_list(tools):
+    t, _ = tools
+    with pytest.raises(ValidationError):
+        t["count_cases"].invoke({"count_by": "child_name"})

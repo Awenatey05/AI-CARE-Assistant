@@ -54,31 +54,35 @@ def connect_and_add(conversation: str, region: str | None, role: str, message: s
 def recent_messages(conversation: str, exchanges: int = RECENT_EXCHANGES) -> list[dict[str, str]]:
     """The last few questions and answers, oldest first. Older messages are kept but not
     sent, so the conversation never grows past the model's context window."""
-    rows = connect().execute(
-        "SELECT role, content FROM chat_messages WHERE session_id = %s ORDER BY id DESC LIMIT %s",
-        (conversation, exchanges * 2)).fetchall()
+    with connect() as connection:
+        rows = connection.execute(
+            "SELECT role, content FROM chat_messages WHERE session_id = %s ORDER BY id DESC LIMIT %s",
+            (conversation, exchanges * 2)).fetchall()
     return [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
 
 
 def last_case_refs(conversation: str) -> list[str]:
     """The case references in the last answer: what "this case" refers to."""
-    row = connect().execute("SELECT case_refs FROM chat_messages WHERE session_id = %s AND role = 'assistant' "
-                            "ORDER BY id DESC LIMIT 1", (conversation,)).fetchone()
+    with connect() as connection:
+        row = connection.execute("SELECT case_refs FROM chat_messages WHERE session_id = %s AND role = 'assistant' "
+                                 "ORDER BY id DESC LIMIT 1", (conversation,)).fetchone()
     return row["case_refs"] if row else []
 
 
 # 6. DISPLAY CONVERSATION HISTORY
 def show_history(conversation: str) -> list[dict[str, Any]]:
     """Every message stored for this conversation."""
-    return connect().execute("SELECT role, content, case_refs, created_at FROM chat_messages "
-                             "WHERE session_id = %s ORDER BY id", (conversation,)).fetchall()
+    with connect() as connection:
+        return connection.execute("SELECT role, content, case_refs, created_at FROM chat_messages "
+                                  "WHERE session_id = %s ORDER BY id", (conversation,)).fetchall()
 
 
 # 7. SHOW MEMORY STATISTICS
 def show_statistics(conversation: str) -> dict[str, int]:
     """How many questions and answers this conversation has."""
-    rows = connect().execute("SELECT role, count(*) AS n FROM chat_messages WHERE session_id = %s GROUP BY role",
-                             (conversation,)).fetchall()
+    with connect() as connection:
+        rows = connection.execute("SELECT role, count(*) AS n FROM chat_messages WHERE session_id = %s "
+                                  "GROUP BY role", (conversation,)).fetchall()
     counts = {row["role"]: row["n"] for row in rows}
     return {"user messages": counts.get("user", 0), "assistant messages": counts.get("assistant", 0),
             "total messages": sum(counts.values())}

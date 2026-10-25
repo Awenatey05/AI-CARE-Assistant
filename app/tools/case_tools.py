@@ -4,7 +4,7 @@ The verdicts were made once, at intake (rules, model, quote check, scoring),
 and are read here from the database; nothing is judged again and no number
 is guessed by the model.
 
-    count_cases  "How many High cases are there in Savelugu?"
+    count_cases  "How many High cases are there in Savelugu?" "How many regions do we work in?"
     list_cases   "Which children in Gumani are out of school?"
     show_case    "Why is NR-TML-GUM-0012-2026 High? What was the report?"
     find_case_by_name  "Do we have a case for Ama Mensah?" (only after the user's OK)
@@ -51,6 +51,11 @@ class CaseFilters(BaseModel):
     status: Status | None = None
 
 
+class CountArgs(CaseFilters):
+    count_by: Literal["band", "region", "district", "community"] = Field(
+        default="band", description="what to count the cases by")
+
+
 class ListArgs(CaseFilters):
     limit: int = Field(default=10, ge=1, le=25)
 
@@ -86,13 +91,17 @@ def where(region: str | None, filters: dict[str, Any]) -> tuple[str, dict[str, A
 
 
 # 3. THE TOOLS
-def count_cases(region: str | None, **filters: Any) -> dict[str, Any]:
+def count_cases(region: str | None, count_by: str = "band", **filters: Any) -> dict[str, Any]:
+    """Count cases, split by band, region, district or community. The names in the result
+    (total_cases, number_of_regions, ...) say what each number counts."""
     sql, params = where(region, filters)
-    rows = connect().execute(f"SELECT coalesce(c.band, 'no band') AS band, count(*) AS n FROM cases c WHERE {sql} "
-                             "GROUP BY 1", params).fetchall()
-    by_band = {row["band"]: row["n"] for row in rows}
+    with connect() as connection:
+        rows = connection.execute(f"SELECT coalesce(c.{count_by}, 'none') AS value, count(*) AS n FROM cases c "
+                                  f"WHERE {sql} GROUP BY 1 ORDER BY 2 DESC", params).fetchall()
+    counts = {row["value"]: row["n"] for row in rows}
     return {"region": region or "all regions", "filters": {k: v for k, v in filters.items() if v},
-            "total": sum(by_band.values()), "by_band": by_band}
+            "total_cases": sum(counts.values()), "count_by": count_by,
+            f"number_of_{count_by}s": len(counts), f"cases_by_{count_by}": counts}
 
 
 def list_cases(region: str | None, limit: int = 10, **filters: Any) -> dict[str, Any]:
@@ -165,8 +174,9 @@ def find_case_by_name(region: str | None, name: str) -> dict[str, Any]:
     for number, word in enumerate(words):
         sql += f" AND c.child_name ILIKE %(w{number})s"
         params[f"w{number}"] = f"%{word}%"
-    rows = connect().execute(f"SELECT c.case_ref, c.band, c.status, c.district, c.community FROM cases c "
-                             f"WHERE {sql} ORDER BY {BAND_ORDER} DESC LIMIT 10", params).fetchall()
+    with connect() as connection:
+        rows = connection.execute(f"SELECT c.case_ref, c.band, c.status, c.district, c.community FROM cases c "
+                                  f"WHERE {sql} ORDER BY {BAND_ORDER} DESC LIMIT 10", params).fetchall()
     return {"region": region or "all regions", "found": len(rows), "cases": [dict(r) for r in rows]}
 
 
@@ -175,7 +185,8 @@ def make_case_tools(region: str | None) -> list[Tool]:
     """The case tools for one user's region (None only for the super administrator)."""
     return [
         Tool("count_cases", "Count cases, optionally by band, indicator (1-10), place (district or community), "
-             "channel or status. Use it for every 'how many' question.", CaseFilters,
+             "channel or status, and split by band, region, district or community (count_by). Use it for every "
+             "'how many' question, including how many regions, districts or communities.", CountArgs,
              lambda **f: count_cases(region, **f)),
         Tool("list_cases", "List cases (references, band, score, place), most serious first, with the same filters "
              "as count_cases. With an indicator, each case's supporting quote is included.", ListArgs,
