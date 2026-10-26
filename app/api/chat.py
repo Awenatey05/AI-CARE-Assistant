@@ -50,7 +50,8 @@ def chat_route(body: ChatQuestion, x_api_key: Annotated[str | None, Header()] = 
     def pieces():
         for item in chat_stream(conversation, body.question, region, approved=body.approved):
             if isinstance(item, Reply):
-                yield line({"reply": {"text": item.text, "sources": item.citations or item.sources[:10],
+                real = [c for c in item.citations if c not in item.invented_citations]   # never an invented source
+                yield line({"reply": {"text": item.text, "sources": real or item.sources[:10],
                                       "counts": item.counts, "needs_approval": item.needs_approval,
                                       "invented_citations": item.invented_citations,
                                       "conversation": conversation}})

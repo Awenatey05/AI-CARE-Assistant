@@ -216,7 +216,8 @@ def chat_client(monkeypatch):
         asked.append((conversation, question, region, approved))
         yield "There are 26 "
         yield "High cases."
-        yield Reply("There are 26 High cases.", sources=["UE-BLS-SAN-0002-2026"], counts=["26 cases (upper_east)"])
+        yield Reply("There are 26 High cases.", sources=["UE-BLS-SAN-0002-2026"], counts=["26 cases (upper_east)"],
+                    citations=["NR-FAKE-1"], invented_citations=["NR-FAKE-1"])
     monkeypatch.setattr(chat_api, "chat_stream", fake_stream)
     return TestClient(main.app), asked
 
