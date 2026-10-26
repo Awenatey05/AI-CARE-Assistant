@@ -10,6 +10,8 @@ the database or the storage itself.
 
 from __future__ import annotations
 
+import json
+
 import requests
 import streamlit as st
 
@@ -61,8 +63,7 @@ def api_status() -> dict:
 # 3. SESSION STATE
 def initialise_session_state() -> None:
     """Everything the pages remember between clicks."""
-    defaults = {"role": "Team leader / regional supervisor", "region": "northern",
-                "messages": [], "conversation": None, "pending_approval": None}
+    defaults = {"role": "Team leader / regional supervisor", "region": "northern", "chats": {}}
     for name, value in defaults.items():
         if name not in st.session_state:
             st.session_state[name] = value
@@ -99,7 +100,7 @@ with st.sidebar:
 
     st.divider()
     if st.button("Clear chat", width="stretch"):
-        st.session_state.messages, st.session_state.conversation = [], None
+        st.session_state.chats.pop(st.session_state.region or "all", None)     # only this conversation
         st.rerun()
     if st.button("Reset", width="stretch"):
         st.session_state.clear()
@@ -308,8 +309,93 @@ def uploads_page() -> None:
 
 
 # 7. CHAT
+def current_chat() -> dict:
+    """This role and region's conversation; each one is kept until Clear chat or Reset."""
+    return st.session_state.chats.setdefault(st.session_state.region or "all",
+                                             {"messages": [], "conversation": None, "pending_approval": None})
+
+
+def stream_answer(question: str, approved: dict | None = None):
+    """The answer from POST /chat, piece by piece; the checked reply is kept for afterwards."""
+    body = {"question": question, "region": st.session_state.region,
+            "conversation": current_chat()["conversation"], "approved": approved}
+    with requests.post(f"{API_URL}/chat", json=body, headers={"X-Api-Key": API_KEY}, stream=True,
+                       timeout=300) as response:
+        response.raise_for_status()
+        for line in response.iter_lines():
+            if line:
+                item = json.loads(line)
+                if "piece" in item:
+                    yield item["piece"]
+                else:
+                    st.session_state.last_reply = item["reply"]
+
+
+def show_sources(message: dict) -> None:
+    if message.get("sources") or message.get("counts"):
+        with st.expander("Sources"):
+            for source in message.get("sources", []):
+                st.markdown(f"- `{source}`")
+            for count in message.get("counts", []):
+                st.markdown(f"- Counted: {count}")
+
+
+def answer(question: str, approved: dict | None = None) -> None:
+    """Ask the assistant and show the answer as it is written."""
+    with st.chat_message("assistant"):
+        shown = st.empty()
+        try:
+            with shown.container():
+                streamed = st.write_stream(stream_answer(question, approved))
+        except requests.exceptions.RequestException as error:
+            st.error(f"The assistant is not available now: {error}")
+            return
+        chat = current_chat()
+        reply = st.session_state.last_reply
+        chat["conversation"] = reply["conversation"]
+        if streamed != reply["text"]:
+            shown.markdown(reply["text"])              # the checked answer replaces what was streamed
+        if reply["needs_approval"]:
+            chat["pending_approval"] = {"question": question, "call": reply["needs_approval"]}
+            st.rerun()
+        else:
+            message = {"role": "assistant", "content": reply["text"], "sources": reply["sources"],
+                       "counts": reply["counts"]}
+            show_sources(message)
+            chat["messages"].append(message)
+
+
 def chat_page() -> None:
     st.header("Chat")
+    st.caption(f"Region: {REGIONS.get(st.session_state.region, 'all regions')}. Write names with a capital letter.")
+
+    chat = current_chat()
+    for message in chat["messages"]:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            if message["role"] == "assistant":
+                show_sources(message)
+
+    # Finding a case by name: the user's OK first.
+    pending = chat["pending_approval"]
+    if pending:
+        with st.chat_message("assistant"):
+            st.markdown("This looks up a child's name. Continue?")
+            yes, no = st.columns(2)
+            if yes.button("Yes", width="stretch"):
+                chat["pending_approval"] = None
+                answer(pending["question"], pending["call"])
+            if no.button("No", width="stretch"):
+                chat["pending_approval"] = None
+                chat["messages"].append({"role": "assistant", "content": "Not searched."})
+                st.rerun()
+
+    question = st.chat_input("Ask about the cases in your region, or about the law")
+    if question:
+        chat["messages"].append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+        answer(question)
 
 
 # 8. MAIN
