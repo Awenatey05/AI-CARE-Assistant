@@ -36,6 +36,13 @@ def api_get(path: str, **params):
     return response
 
 
+def api_post(path: str, body: dict):
+    """POST JSON to the API with the API key."""
+    response = requests.post(f"{API_URL}{path}", json=body, headers={"X-Api-Key": API_KEY}, timeout=60)
+    response.raise_for_status()
+    return response
+
+
 def api_status() -> dict:
     """Which parts of the system are reachable (GET /health)."""
     try:
@@ -84,17 +91,139 @@ with st.sidebar:
             (st.success if reachable else st.error)(f"{part.capitalize()}: {'running' if reachable else 'not reachable'}")
 
     st.divider()
-    if st.button("Clear chat", use_container_width=True):
+    if st.button("Clear chat", width="stretch"):
         st.session_state.messages, st.session_state.conversation = [], None
         st.rerun()
-    if st.button("Reset", use_container_width=True):
+    if st.button("Reset", width="stretch"):
         st.session_state.clear()
         st.rerun()
 
 
 # 5. DASHBOARD
+BANDS = ["High", "Moderate", "Low", "No risk", "none"]
+
+
 def dashboard_page() -> None:
     st.header("Dashboard")
+    try:
+        figures = api_get("/dashboard").json()
+        alerts = api_get("/alerts").json()
+    except requests.exceptions.RequestException as error:
+        st.error(f"The dashboard is not available now: {error}")
+        return
+
+    by_band = figures["by_band"]["cases_by_band"]
+    urgent = [a for a in alerts if a["priority"] == "urgent"]
+    review = [a for a in alerts if a["priority"] == "review"]
+
+    # The cards across the top
+    cards = st.columns(5)
+    cards[0].metric("Cases", figures["by_band"]["total_cases"])
+    cards[1].metric("High risk", by_band.get("High", 0))
+    cards[2].metric("Open urgent alerts", len(urgent))
+    cards[3].metric("Review notices", len(review))
+    cards[4].metric("Last Kobo submission", str(figures["last_kobo_submission"] or "none")[:10])
+
+    # Cases by band, and by place
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Cases by band")
+        st.bar_chart({("no band" if band == "none" else band): by_band.get(band, 0) for band in BANDS})
+    with right:
+        place = figures["by_place"]["count_by"]
+        st.subheader(f"Cases by {place}")
+        st.dataframe([{place.capitalize(): name, "Cases": n}
+                      for name, n in figures["by_place"][f"cases_by_{place}"].items()],
+                     hide_index=True, width="stretch")
+
+    # Open alerts, urgent first, with a filter and Confirm
+    st.subheader(f"Open alerts ({len(alerts)})")
+    filters = st.columns(2)
+    districts = sorted({a["district"] for a in alerts if a["district"]})
+    district = filters[0].selectbox("District", ["All"] + districts)
+    priority = filters[1].selectbox("Priority", ["All", "urgent", "review"])
+    shown = [a for a in alerts if (district == "All" or a["district"] == district)
+             and (priority == "All" or a["priority"] == priority)]
+    st.dataframe([{"Reference": a["case_ref"], "Priority": a["priority"], "Level": a["escalation_level"],
+                   "District": a["district"], "Band": a["band"] or "no band", "Reasons": ", ".join(a["reasons"]),
+                   "Opened": str(a["created_at"])[:16]} for a in shown],
+                 hide_index=True, width="stretch", height=300)
+    if shown:
+        with st.form("confirm"):
+            choice = st.selectbox("Alert to confirm", shown,
+                                  format_func=lambda a: f"{a['case_ref']} ({a['priority']}, level {a['escalation_level']})")
+            name = st.text_input("Confirmed by (name and role)")
+            if st.form_submit_button("Confirm"):
+                if len(name.strip()) < 2:
+                    st.warning("Write who is confirming the alert.")
+                else:
+                    try:
+                        api_post(f"/alerts/{choice['id']}/confirm", {"confirmed_by": name})
+                        st.success(f"Alert for {choice['case_ref']} confirmed.")
+                        st.rerun()
+                    except requests.exceptions.RequestException as error:
+                        st.error(f"Could not confirm: {error}")
+
+    # Kobo submissions needing follow-up
+    follow_up = figures["kobo_follow_up"]
+    st.subheader(f"Kobo submissions needing follow-up ({len(follow_up)})")
+    if follow_up:
+        st.dataframe([{"Reference": c["case_ref"], "Status": c["status"].replace("_", " "),
+                       "District": c["district"], "Community": c["community"]} for c in follow_up],
+                     hide_index=True, width="stretch")
+
+    # One case
+    st.subheader("Case")
+    reference = st.text_input("Case reference", placeholder="NR-TML-GUM-0004-2025")
+    if reference:
+        show_case_view(reference.strip().upper())
+
+
+def show_case_view(reference: str) -> None:
+    """One case's assessment, and its original as it arrived."""
+    try:
+        case = api_get(f"/cases/{reference}").json()
+    except requests.exceptions.HTTPError:
+        st.warning("No case with this reference in your region.")
+        return
+
+    cards = st.columns(4)
+    cards[0].metric("Band", case["band"] or "no band")
+    cards[1].metric("Score", case["score"] if case["score"] is not None else "-")
+    cards[2].metric("Status", case["status"].replace("_", " "))
+    cards[3].metric("Channel", case["channel"])
+    if case["urgent_reasons"]:
+        st.error("Urgent: " + ", ".join(case["urgent_reasons"]))
+    if case["summary"]:
+        st.write(case["summary"])
+
+    st.dataframe([{"Indicator": f"{i['indicator']}{i['subtype'] or ''} {i['name']}", "Found in": i["found_in"],
+                   "Quote": i["quote"] or "(from the form answers)"} for i in case["indicators"]],
+                 hide_index=True, width="stretch")
+    with st.expander("Report (masked)"):
+        st.write(case["report_masked"] or "No report text.")
+    if case["phone_number_in_report"]:
+        st.info("The report contains a phone number: open the original to see it.")
+    if case["attachments"]:
+        st.info("Files: " + ", ".join(case["attachments"]))
+
+    if st.button("Open the original"):
+        try:
+            original = api_get(f"/cases/{reference}/original")
+        except requests.exceptions.RequestException as error:
+            st.error(f"The original is not available: {error}")
+            return
+        kind = original.headers.get("content-type", "")
+        if kind.startswith("application/json"):
+            st.json(original.json())
+        elif kind.startswith("video"):
+            st.video(original.content)
+        elif kind.startswith("audio"):
+            st.audio(original.content)
+        else:
+            st.download_button("Download the original", original.content, file_name=reference)
+        if "call recording" in case["attachments"]:
+            st.audio(api_get(f"/cases/{reference}/original", recording="true").content)
 
 
 # 6. UPLOADS
