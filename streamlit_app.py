@@ -43,6 +43,13 @@ def api_post(path: str, body: dict):
     return response
 
 
+def api_post_form(path: str, fields: dict, files: dict | None = None):
+    """POST a form (with files) to the API with the API key."""
+    response = requests.post(f"{API_URL}{path}", data=fields, files=files, headers={"X-Api-Key": API_KEY}, timeout=300)
+    response.raise_for_status()
+    return response
+
+
 def api_status() -> dict:
     """Which parts of the system are reachable (GET /health)."""
     try:
@@ -227,8 +234,77 @@ def show_case_view(reference: str) -> None:
 
 
 # 6. UPLOADS
+CALLERS = ["the child", "a nurse", "teacher", "a community volunteer", "neighbour", "relative", "an anonymous caller"]
+DOCUMENTS = {"medical_report": "Medical report", "school_referral_letter": "School referral letter",
+             "office_intake_note": "Office intake note", "followup_visit_note": "Follow-up visit note",
+             "case_conference_minutes": "Case conference minutes", "volunteer_statement": "Volunteer statement",
+             "recorded_statement": "Recorded statement (video)",
+             "school_attendance_register": "School attendance register (sheet)",
+             "community_committee_log": "Community committee log (sheet)",
+             "field_round_compilation": "Field round compilation (sheet)"}
+
+
+def region_field(key: str) -> str:
+    """The team leader's own region; the super administrator chooses one."""
+    if st.session_state.region:
+        st.text_input("Region", REGIONS[st.session_state.region], disabled=True, key=f"{key}_region_shown")
+        return st.session_state.region
+    return st.selectbox("Region", list(REGIONS), format_func=REGIONS.get, key=f"{key}_region")
+
+
+def sent(response, what: str) -> None:
+    body = response.json()
+    reference = body.get("report_id") or body.get("upload_id")
+    st.success(f"{what} received as {reference}. It is being assessed; it will appear on the dashboard shortly.")
+
+
 def uploads_page() -> None:
     st.header("Uploads")
+    call_tab, document_tab = st.tabs(["Helpline report", "Document, sheet or video"])
+
+    with call_tab:
+        with st.form("helpline", clear_on_submit=True):
+            region = region_field("helpline")
+            district = st.text_input("District")
+            caller = st.selectbox("Who called", CALLERS)
+            report = st.text_area("Report of the call", height=200)
+            consent = st.checkbox("The caller agreed to the call being recorded")
+            recording = st.file_uploader("Recording (only with the caller's consent)", type=["m4a", "mp3", "wav"])
+            if st.form_submit_button("Send report"):
+                if not district.strip() or len(report.strip()) < 20:
+                    st.warning("Give the district and a report of at least 20 characters.")
+                elif recording and not consent:
+                    st.warning("A recording can only be sent with the caller's consent.")
+                else:
+                    files = {"recording": (recording.name, recording.getvalue())} if recording else None
+                    try:
+                        sent(api_post_form("/helpline", {"region": region, "district": district, "caller_type": caller,
+                                                         "report_text": report, "consent_to_record": str(consent).lower()},
+                                           files), "Report")
+                    except requests.exceptions.HTTPError as error:
+                        st.error(f"Not accepted: {error.response.json().get('detail', error)}")
+                    except requests.exceptions.RequestException as error:
+                        st.error(f"The report could not be sent now: {error}")
+
+    with document_tab:
+        with st.form("upload", clear_on_submit=True):
+            region = region_field("upload")
+            district = st.text_input("District")
+            kind = st.selectbox("Type of document", list(DOCUMENTS), format_func=DOCUMENTS.get)
+            child = st.text_input("Child's name (not needed for a sheet)")
+            upload = st.file_uploader("File", type=["pdf", "docx", "xlsx", "mp4", "mov"])
+            if st.form_submit_button("Upload"):
+                if not district.strip() or upload is None:
+                    st.warning("Give the district and choose a file.")
+                else:
+                    try:
+                        sent(api_post_form("/uploads", {"region": region, "district": district, "document_type": kind,
+                                                        "child_name": child},
+                                           {"file": (upload.name, upload.getvalue())}), "Upload")
+                    except requests.exceptions.HTTPError as error:
+                        st.error(f"Not accepted: {error.response.json().get('detail', error)}")
+                    except requests.exceptions.RequestException as error:
+                        st.error(f"The file could not be sent now: {error}")
 
 
 # 7. CHAT
