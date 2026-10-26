@@ -8,7 +8,8 @@ OUTPUT_FORMAT as version 1, so every answer can be validated and scored the
 same way.
 
 ASSISTANT_PROMPT is the chat assistant's prompt: it chooses tools to answer
-staff questions. ANSWER_PROMPT asks it to write the answer, which is streamed.
+staff questions. ASSISTANT_USER_PROMPT gives it the current question to answer,
+and the answer is streamed.
 """
 
 
@@ -266,9 +267,15 @@ Question: What does the law say about child labour at night?
 """
 
 
-# THE CHAT ASSISTANT'S ANSWER (written as plain text and streamed)
-ANSWER_PROMPT = """Now write your answer to the user's question, in plain text, not JSON.
-Use only the tool results above. Cite the case references and evidence labels you use, in square brackets,
-exactly as they appear in the tool results. If the tool results have none (for example a count), do not cite anything.
-Never write a child's name or a phone number. If the results do not answer the question, say:
-I don't have enough evidence."""
+# THE CHAT ASSISTANT'S LAST MESSAGE, with the current question; the answer is written as plain text and streamed
+ASSISTANT_USER_PROMPT = """Current question:
+
+{question}
+
+Answer the question using the tool results above, in plain text, not JSON.
+Use conversation history when interpreting follow-up questions; if asked to explain further,
+give more detail than before: each indicator found, with its quote from the report.
+If the tool results do not contain enough information, say: I don't have enough evidence.
+Cite the case references and evidence labels you use, in square brackets, exactly as they appear in the tool
+results. If the tool results have none (for example a count), do not cite anything.
+Never write a child's name or a phone number."""

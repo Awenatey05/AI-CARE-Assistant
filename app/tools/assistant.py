@@ -30,7 +30,7 @@ from typing import Any, Iterator, get_args
 from pydantic import ValidationError
 
 from app.llm.client import chat_with_llm, parse_json_object, stream_chat_with_llm
-from app.llm.prompts import ANSWER_PROMPT, ASSISTANT_PROMPT
+from app.llm.prompts import ASSISTANT_PROMPT, ASSISTANT_USER_PROMPT
 from app.rag.answer import NO_EVIDENCE, cited_labels
 from app.services import chat_store
 from app.services.masking import mask_keeping_names
@@ -119,6 +119,16 @@ def describe_count(result: dict[str, Any]) -> str:
     return f"{what}{result['total_cases']} cases ({result['region']}{', ' + filters if filters else ''})"
 
 
+def without_invented(text: str, allowed: set[str]) -> str:
+    """Remove bracketed text that is not a real reference or label, e.g. pieces of a tool
+    result the model copied: [indicator 1, "found_in": ...] or [cases_by_region northern 269]."""
+    def keep(match: re.Match) -> str:
+        labels = cited_labels(match.group(0))
+        real = labels and all(label in allowed for label in labels)
+        return match.group(0) if real or match.group(1) in ("NAME", "PHONE") else ""
+    return re.sub(r" ?\[([^\[\]]+)\]", keep, text)
+
+
 def references_in(result: Any) -> set[str]:
     """Every case reference and evidence label a tool returned: the only labels an answer may cite."""
     found: set[str] = set()
@@ -166,14 +176,13 @@ def ask_stream(question: str, region: str | None, *, approved: dict[str, Any] | 
         return result
 
     def finished(text: str) -> Reply:
-        text = text.strip() or NO_EVIDENCE
-        citations = cited_labels(text)
-        return Reply(text, calls, citations, [c for c in citations if c not in allowed], sources=sources,
-                     counts=counts)
+        invented = [c for c in cited_labels(text) if c not in allowed]
+        text = without_invented(text, allowed).strip() or NO_EVIDENCE
+        return Reply(text, calls, cited_labels(text), invented, sources=sources, counts=counts)
 
     def write_answer() -> Iterator[str | Reply]:
         # The answer is written as plain text and streamed; the full text is checked at the end.
-        state.messages.append({"role": "user", "content": ANSWER_PROMPT})
+        state.messages.append({"role": "user", "content": ASSISTANT_USER_PROMPT.format(question=question)})
         collected = []
         for piece in stream_chat_with_llm(state.messages):
             collected.append(piece)

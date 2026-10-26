@@ -260,9 +260,10 @@ def test_ready_then_the_answer_is_streamed_and_checked(run, monkeypatch):
     items = list(assistant.ask_stream("How many High cases?", "upper_east"))
     assert items[:-1] == pieces                                       # each piece, as it arrives
     reply = items[-1]
-    assert reply.text == "".join(pieces)                              # the full text, at the end
+    assert reply.text == "There are 26 High cases [UE-BLS-SAN-0002-2026] and."   # checked: the invention removed
     assert reply.invented_citations == ["NR-FAKE-0001-2026"]          # checked after the last piece
     assert "plain text, not JSON" in sent_for_answer[0]
+    assert "Current question:\n\nHow many High cases?" in sent_for_answer[0]      # the question it must answer
 
 
 def test_ask_gives_only_the_checked_reply(run):
@@ -298,3 +299,23 @@ def test_an_invented_citation_is_never_shown_as_a_source():
     assert "Sources" not in reply.with_sources()
     mixed = assistant.Reply("See [NR-1] and [NR-FAKE].", citations=["NR-1", "NR-FAKE"], invented_citations=["NR-FAKE"])
     assert mixed.with_sources().endswith("Sources: [NR-1]")
+
+
+
+def test_bracketed_text_that_is_not_a_reference_is_removed():
+    allowed = {"NR-SGN-SAG-0001-2025", "policy_uncrc.pdf#chunk-3"}
+    text = ('It is High [NR-SGN-SAG-0001-2025]: "afraid at night" [indicator 1, "found_in": "report"]. '
+            'Six regions [cases_by_region northern 269]. Call [PHONE]. See [policy_uncrc.pdf#chunk-3].')
+    assert assistant.without_invented(text, allowed) == ('It is High [NR-SGN-SAG-0001-2025]: "afraid at night". '
+                                                         'Six regions. Call [PHONE]. See [policy_uncrc.pdf#chunk-3].')
+
+
+def test_the_reply_is_cleaned_but_the_invention_is_still_reported(run, monkeypatch):
+    run[0]([answer("x")])                                              # sets up the fake tools
+    replies = iter([tool("count_cases", band="High"), json.dumps({"ready": True})])
+    monkeypatch.setattr(assistant, "chat_with_llm", lambda messages, format=None: Generation(next(replies), "m", 1.0))
+    monkeypatch.setattr(assistant, "stream_chat_with_llm",
+                        lambda messages: iter(["26 [UE-BLS-SAN-0002-2026] [NR-FAKE-1]."]))
+    reply = assistant.ask("How many High cases?", "upper_east")
+    assert reply.text == "26 [UE-BLS-SAN-0002-2026]." and reply.invented_citations == ["NR-FAKE-1"]
+    assert reply.citations == ["UE-BLS-SAN-0002-2026"]
