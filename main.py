@@ -7,10 +7,6 @@ Also lists open alerts and lets staff confirm them (for the dashboard),
 and answers chat questions, streamed.
 
     Kobo / Streamlit -> FastAPI -> storage + Redis queue -> worker.py
-
-Run from the project folder:
-    uvicorn main:app --reload
-Then open http://localhost:8000/docs to see and try every endpoint.
 """
 
 from __future__ import annotations
@@ -19,7 +15,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.api import alerts, chat, health, kobo, office
+from app.api import alerts, cases, chat, health, kobo, office
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s")
 
@@ -33,3 +29,4 @@ app.include_router(kobo.router)
 app.include_router(office.router)
 app.include_router(alerts.router)
 app.include_router(chat.router)
+app.include_router(cases.router)

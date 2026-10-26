@@ -249,3 +249,102 @@ def test_chat_when_ollama_is_down(chat_client, monkeypatch):
     client, _ = chat_client
     monkeypatch.setattr(chat_api, "check_ollama", lambda: False)
     assert client.post("/chat", json={"question": "Hello there"}, headers=KEY).status_code == 503
+
+
+
+# ------------------------------------------------
+# The dashboard and the case view (the tools, the database and storage replaced by fakes)
+# ------------------------------------------------
+
+from app.api import cases as cases_api  # noqa: E402
+
+
+class FakeConnection:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *error):
+        return False
+
+    def execute(self, sql, params=()):
+        self.sql, self.params = sql, params
+        return self
+
+    def fetchone(self):
+        return self.rows.pop(0) if self.rows else None
+
+
+@pytest.fixture
+def cases_client(monkeypatch):
+    seen = {"counts": [], "lists": []}
+    monkeypatch.setattr(office, "API_KEY", "test-key")
+    def fake_count(region, count_by="band", **filters):
+        seen["counts"].append((region, count_by, filters))
+        return {"region": region or "all regions", "total_cases": 3, "count_by": count_by,
+                f"cases_by_{count_by}": {"High": 2, "Low": 1}}
+    def fake_list(region, limit=10, **filters):
+        seen["lists"].append((region, filters))
+        return {"cases": [{"case_ref": "NR-1", "status": filters.get("status")}]}
+    monkeypatch.setattr(cases_api, "count_cases", fake_count)
+    monkeypatch.setattr(cases_api, "list_cases", fake_list)
+    monkeypatch.setattr(cases_api, "show_case", lambda region, ref: {"found": ref == "NR-TML-GUM-0004-2025",
+                                                                     "case_ref": ref, "band": "High"})
+    rows = {"value": []}
+    monkeypatch.setattr(cases_api, "connect", lambda: FakeConnection(rows["value"]))
+    files = {"helpline/HL-1.json": b'{"recording_file": "HL-1.m4a"}', "helpline/HL-1.m4a": b"audio",
+             "uploads/UP-1/report.pdf": b"%PDF"}
+    monkeypatch.setattr(cases_api.storage, "read_bytes", lambda key: files[key])
+    monkeypatch.setattr(cases_api.storage, "read_json", lambda key: __import__("json").loads(files[key]))
+    return TestClient(main.app), seen, rows
+
+
+def test_dashboard_for_a_team_leader_counts_by_community(cases_client):
+    client, seen, rows = cases_client
+    rows["value"] = [{"last": "2026-10-25T01:28:19"}]
+    body = client.get("/dashboard", params={"region": "Northern"}, headers=KEY).json()
+    assert body["region"] == "northern" and body["last_kobo_submission"] == "2026-10-25T01:28:19"
+    assert ("northern", "community", {}) in seen["counts"]
+    assert [c["status"] for c in body["kobo_follow_up"]] == ["not_scored_incomplete", "human_review",
+                                                              "not_scored_no_consent"]
+
+
+def test_dashboard_for_the_super_administrator_counts_by_region(cases_client):
+    client, seen, rows = cases_client
+    rows["value"] = [{"last": None}]
+    body = client.get("/dashboard", headers=KEY).json()
+    assert body["region"] == "all regions" and (None, "region", {}) in seen["counts"]
+
+
+def test_one_case_and_not_found(cases_client):
+    client, _, _ = cases_client
+    assert client.get("/cases/NR-TML-GUM-0004-2025", headers=KEY).json()["band"] == "High"
+    assert client.get("/cases/NR-NOPE-0001-2025", headers=KEY).status_code == 404
+
+
+def test_the_original_with_its_type_and_the_recording(cases_client):
+    client, _, rows = cases_client
+    rows["value"] = [{"region": "oti", "original_key": "uploads/UP-1/report.pdf"}]
+    response = client.get("/cases/OT-1/original", headers=KEY)
+    assert response.status_code == 200 and response.headers["content-type"] == "application/pdf"
+    rows["value"] = [{"region": "oti", "original_key": "helpline/HL-1.json"}]
+    response = client.get("/cases/OT-2/original", params={"recording": "true"}, headers=KEY)
+    assert response.content == b"audio" and response.headers["content-type"] == "audio/mp4"
+
+
+def test_no_original_from_another_region_or_without_a_recording(cases_client):
+    client, _, rows = cases_client
+    rows["value"] = [{"region": "oti", "original_key": "uploads/UP-1/report.pdf"}]
+    assert client.get("/cases/OT-1/original", params={"region": "northern"}, headers=KEY).status_code == 404
+    rows["value"] = [{"region": "oti", "original_key": "uploads/UP-1/report.pdf"}]
+    response = client.get("/cases/OT-1/original", params={"recording": "true"}, headers=KEY)
+    assert response.status_code == 404 and response.json()["detail"] == "This case has no recording"
+
+
+def test_cases_need_the_api_key_and_a_known_region(cases_client):
+    client, _, _ = cases_client
+    assert client.get("/dashboard").status_code == 401
+    assert client.get("/dashboard", params={"region": "Atlantis"}, headers=KEY).status_code == 422
+    assert client.get("/cases/NR-1").status_code == 401
