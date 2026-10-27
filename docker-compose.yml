@@ -1,10 +1,16 @@
 # =====================================================================
 # AI CARE Assistant
 # Postgres (with pgvector) + Redis + RustFS (S3 storage for originals)
+# + the API, the worker and the Streamlit pages (one image, built here)
+# + Caddy, the only public entrance (HTTPS, routing)
 #
-#   docker compose up -d      # start
-#   docker compose ps         # check status
-#   docker compose down       # stop
+# Ollama runs on the computer itself, outside Docker, where it can use
+# the graphics chip; the containers reach it at host.docker.internal.
+#
+#   docker compose up -d --build     # build the app image and start everything
+#   docker compose ps                # check status
+#   docker compose logs -f worker    # follow the worker's log
+#   docker compose down              # stop
 # =====================================================================
 
 services:
@@ -73,8 +79,107 @@ services:
     networks:
       - aicare_net
 
+  # ------------------------------------------------------------------
+  # The API (FastAPI): Kobo webhook, office intake, alerts, cases, chat.
+  # Not published: it is reached only through Caddy (and by the ui).
+  # ------------------------------------------------------------------
+  api:
+    build: .
+    image: aicare-app:1.0
+    container_name: aicare_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Inside Docker the other services are found by name, not on localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_URL: http://rustfs:9000
+      # Ollama runs on the computer itself, outside Docker, where it can use the graphics chip.
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/openapi.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rustfs:
+        condition: service_healthy
+    networks:
+      - aicare_net
+
+  # ------------------------------------------------------------------
+  # The worker: assesses each case, saves it, sends alerts.
+  # Whisper's model is kept in a volume, so it is downloaded only once.
+  # ------------------------------------------------------------------
+  worker:
+    image: aicare-app:1.0
+    container_name: aicare_worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_URL: http://rustfs:9000
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    command: ["python", "worker.py"]
+    volumes:
+      - whisper_models:/root/.cache/huggingface
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - aicare_net
+
+  # ------------------------------------------------------------------
+  # The Streamlit pages: dashboard, uploads, chat. Reached only through Caddy.
+  # ------------------------------------------------------------------
+  ui:
+    image: aicare-app:1.0
+    container_name: aicare_ui
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      API_URL: http://api:8000
+    command: ["streamlit", "run", "streamlit_app.py", "--server.address=0.0.0.0", "--server.port=8501",
+              "--server.headless=true"]
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - aicare_net
+
+  # ------------------------------------------------------------------
+  # Caddy: the only public entrance. HTTPS, and routing:
+  #   /kobo and /health -> the API;  everything else -> the Streamlit pages.
+  # On a server, DOMAIN in .env is the real address; on a laptop, localhost.
+  # ------------------------------------------------------------------
+  caddy:
+    image: caddy:2.8.4
+    container_name: aicare_caddy
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - api
+      - ui
+    networks:
+      - aicare_net
+
 networks:
   aicare_net:
 
 volumes:
   rustfs_data:
+  whisper_models:
+  caddy_data:

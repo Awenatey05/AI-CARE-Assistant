@@ -1,0 +1,16 @@
+# AI CARE Assistant: the only public entrance.
+# HTTPS is automatic: on localhost Caddy makes its own certificate; on a server
+# with a real domain name it gets one from Let's Encrypt.
+{$DOMAIN:localhost} {
+    # Kobo's webhook and the health check go to the API.
+    handle /kobo* {
+        reverse_proxy api:8000
+    }
+    handle /health {
+        reverse_proxy api:8000
+    }
+    # Everything else: the Streamlit pages.
+    handle {
+        reverse_proxy ui:8501
+    }
+}
