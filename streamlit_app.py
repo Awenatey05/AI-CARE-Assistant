@@ -146,6 +146,9 @@ def dashboard_page() -> None:
 
     # Open alerts, urgent first, with a filter and Confirm
     st.subheader(f"Open alerts ({len(alerts)})")
+    confirmed = st.session_state.pop("confirmed", None)        # kept from before the page refreshed
+    if confirmed:
+        st.success(confirmed)
     filters = st.columns(2)
     districts = sorted({a["district"] for a in alerts if a["district"]})
     district = filters[0].selectbox("District", ["All"] + districts)
@@ -167,7 +170,7 @@ def dashboard_page() -> None:
                 else:
                     try:
                         api_post(f"/alerts/{choice['id']}/confirm", {"confirmed_by": name})
-                        st.success(f"Alert for {choice['case_ref']} confirmed.")
+                        st.session_state.confirmed = f"Alert for {choice['case_ref']} confirmed by {name.strip()}."
                         st.rerun()
                     except requests.exceptions.RequestException as error:
                         st.error(f"Could not confirm: {error}")
