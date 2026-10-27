@@ -1,0 +1,72 @@
+SEARCH AND GROUNDED ANSWERS
+
+1. What does the law say about forcing a child into marriage?
+   the right law: policy_childrens_act_560.pdf
+   found, best first: policy_childrens_act_560.pdf, policy_criminal_offences_act_29.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: According to Section 14 of the policy_childrens_act_560.pdf, no person shall force a child to be betrothed, married, or subjected to any cultural practice that dehumanizes or is injurious to the physical and mental well-
+
+2. What is the minimum age for marriage?
+   the right law: policy_childrens_act_560.pdf
+   found, best first: policy_childrens_act_560.pdf, policy_criminal_offences_act_29.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: According to Section 2 of the policy_childrens_act_560.pdf, the minimum age of marriage of whatever kind shall be eighteen years.
+
+3. Can a child be made to work at night?
+   the right law: policy_childrens_act_560.pdf
+   found, best first: policy_childrens_act_560.pdf, policy_uncrc.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: According to Section 88 of the policy_childrens_act_560.pdf, [1], "No person shall engage a child in night work." This implies that a child cannot be made to work at night, as night work is defined as work between the ho
+
+4. Is it a crime to traffic a child?
+   the right law: policy_human_trafficking_act_694.pdf
+   found, best first: policy_criminal_offences_act_29.pdf, policy_human_trafficking_act_694.pdf, policy_justice_for_children_2015.pdf
+   right law first: no;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: Yes, it is a crime to traffic a child, as stated in [policy_human_trafficking_act_694.pdf#chunk-7 | score=0.415] which states: "2. Prohibition of trafﬁcking (1) A person shall not trafﬁc another person within the meaning
+
+5. Is it legal to recruit a child for labour in another town?
+   the right law: policy_human_trafficking_act_694.pdf
+   found, best first: policy_childrens_act_560.pdf, policy_uncrc.pdf
+   right law first: no;  in the top 5 chunks: no;  citation precision: 0.00
+   answer: I don't have enough evidence.
+
+6. What protection is there against violence in the home?
+   the right law: policy_domestic_violence_act_732.pdf
+   found, best first: policy_domestic_violence_act_732.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: According to the Domestic Violence Act, 2007, a protection order can be issued to prohibit a respondent from committing or threatening to commit an act of domestic violence personally or otherwise against an applicant or
+
+7. What is the punishment for defilement of a child?
+   the right law: policy_criminal_offences_act_29.pdf
+   found, best first: policy_criminal_offences_act_29.pdf, policy_childrens_act_560.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 1.00
+   answer: According to [policy_criminal_offences_act_29.pdf#chunk-199], the punishment for defilement of a child is imprisonment for a term of not less than seven years and not more than twenty-five years.
+
+8. How should a child in conflict with the law be treated?
+   the right law: policy_justice_for_children_2015.pdf
+   found, best first: policy_justice_for_children_2015.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: According to the evidence, a child in conflict with the law should be treated in a sensitive and respectful manner, with due regard for their age and legal status as a child. The primary aim should be social rehabilitati
+
+9. Why does birth registration matter for children's welfare?
+   the right law: policy_child_family_welfare_2015.pdf
+   found, best first: policy_uncrc.pdf, policy_justice_for_children_2015.pdf, policy_childrens_act_560.pdf
+   right law first: no;  in the top 5 chunks: no;  citation precision: 0.67
+   answer: According to Article 7 of the policy document [policy_uncrc.pdf#chunk-11], birth registration is crucial for the survival and development of a child, as it ensures the child has the right to a name, nationality, and care
+
+10. Does every child have a right to education?
+   the right law: policy_uncrc.pdf
+   found, best first: policy_uncrc.pdf, policy_childrens_act_560.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: Yes, every child has a right to education. According to Article 28 of the Convention on the Rights of the Child, States Parties agree that the education of the child shall be directed to: * The development of the child's
+
+11. What did the Children's (Amendment) Act change?
+   the right law: policy_childrens_amendment_act_937.pdf
+   found, best first: policy_childrens_amendment_act_937.pdf, policy_childrens_act_560.pdf
+   right law first: yes;  in the top 5 chunks: yes;  citation precision: 0.00
+   answer: The Children's (Amendment) Act, 2016, amended the Children's Act, 1998 (Act 560) in several sections. Specifically, it made the following changes: * Section 18: Substituted paragraph (e) with "is under the care of a pare
+
+recall@1 (the right law first):        0.73
+recall@5 (the right law in the top 5): 0.82
+mean reciprocal rank:                  0.77
+citation precision (average):          0.15
