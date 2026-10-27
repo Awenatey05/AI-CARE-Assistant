@@ -130,9 +130,12 @@ def without_invented(text: str, allowed: set[str]) -> str:
 
 
 def references_in(result: Any) -> set[str]:
-    """Every case reference and evidence label a tool returned: the only labels an answer may cite."""
+    """Every case reference and evidence label a tool returned: the only labels an answer may cite.
+    A case that was not found is not a source."""
     found: set[str] = set()
     if isinstance(result, dict):
+        if result.get("found") is False:
+            return found
         for key, value in result.items():
             if key in ("case_ref", "label") and isinstance(value, str):
                 found.add(value)

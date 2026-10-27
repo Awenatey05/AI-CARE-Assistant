@@ -319,3 +319,8 @@ def test_the_reply_is_cleaned_but_the_invention_is_still_reported(run, monkeypat
     reply = assistant.ask("How many High cases?", "upper_east")
     assert reply.text == "26 [UE-BLS-SAN-0002-2026]." and reply.invented_citations == ["NR-FAKE-1"]
     assert reply.citations == ["UE-BLS-SAN-0002-2026"]
+
+
+def test_a_case_that_was_not_found_is_not_a_source():
+    assert assistant.references_in({"found": False, "case_ref": "XX-FAKE-0000-2025"}) == set()
+    assert assistant.references_in({"found": True, "case_ref": "NR-1"}) == {"NR-1"}

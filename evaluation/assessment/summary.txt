@@ -1,0 +1,21 @@
+ASSESSMENT COMPARED WITH THE ANSWER KEY (data/labels.json)
+
+group       cases  band right  alerts missed  alerts by mistake  could not assess
+eval          100         89%     0 of 18                      7               13%
+dev           900         83%     0 of 101                   114                7%
+helpline      100         63%     4 of 17                     21               32%
+edge           20         79%     1 of 8                       2               10%
+upload         51         91%     1 of 14                      0               12%
+
+INDICATORS (all groups; cases that could not be assessed left out)
+indicator   found  missed  wrongly flagged  recall  precision
+1              40       0              119    100%        25%
+2              20       0                2    100%        91%
+3             197      10               69     95%        74%
+4             248       0               43    100%        85%
+5              17       2                2     89%        89%
+6              30       0               68    100%        31%
+7             287       5               20     98%        93%
+8             197      20                0     91%       100%
+9             238       0               33    100%        88%
+10            235      11                0     96%       100%

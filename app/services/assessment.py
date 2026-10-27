@@ -8,6 +8,7 @@ marked "could not assess" and goes to a human. It is never given a band.
 from __future__ import annotations
 
 import re
+from collections import Counter
 from typing import Any
 
 import requests
@@ -33,11 +34,19 @@ def quote_in_text(quote: str, text: str) -> bool:
     return quote in text or quote.rstrip(".") in text
 
 
+MAX_SAME_QUOTE = 3   # one sentence can show up to three risks, e.g. labour, trafficking and out of school
+
+
 def check_quotes(assessment: Assessment, text: str) -> list[str]:
-    """Return one error for every quote that does not appear in the text."""
-    return [f"the quote for indicator {label.id} is not in the report"
-            for label in assessment.indicators
-            if label.present and not quote_in_text(label.quote, text)]
+    """Return one error for every quote that does not appear in the text, and for a
+    sentence given as the quote for more than MAX_SAME_QUOTE indicators."""
+    present = [label for label in assessment.indicators if label.present]
+    problems = [f"the quote for indicator {label.id} is not in the report"
+                for label in present if not quote_in_text(label.quote, text)]
+    counts = Counter(normalise(label.quote) for label in present if label.quote)
+    problems += [f"the same sentence is given as the quote for {n} indicators: one sentence cannot prove that many risks"
+                 for n in counts.values() if n > MAX_SAME_QUOTE]
+    return problems
 
 
 # A missing birth certificate is indicator 10 (no legal identity), not trafficking.

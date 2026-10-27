@@ -69,3 +69,12 @@ def test_mask_keeping_names_returns_the_names_it_removed():
     masked, names = mask_keeping_names("Do we have a case for the girl of Mrs Ama Mensah? Call 024 412 3456.")
     assert "Ama" not in masked and "[NAME]" in masked and "[PHONE]" in masked
     assert names == ["Ama Mensah"]
+
+
+def test_place_names_are_not_masked_in_a_question(monkeypatch):
+    from app.services import masking
+    monkeypatch.setattr(masking, "place_names", lambda: frozenset({"gumani", "tamale", "savelugu"}))
+    assert masking.mask_keeping_names("Which children in Gumani are out of school?") == (
+        "Which children in Gumani are out of school?", [])
+    masked, names = masking.mask_keeping_names("Do we have a case for Mrs Ama Mensah in Tamale?")
+    assert names == ["Ama Mensah"] and "Ama" not in masked and "Tamale" in masked

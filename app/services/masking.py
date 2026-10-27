@@ -70,12 +70,30 @@ def mask(text: str, known_names: list[str] | None = None) -> str:
     return AnonymizerEngine().anonymize(text=text, analyzer_results=findings, operators=operators).text
 
 
+@lru_cache(maxsize=1)
+def place_names() -> frozenset[str]:
+    """Every word of the regions, districts and communities the system knows (lower case)."""
+    from app.core.db import connect
+    with connect() as connection:
+        rows = connection.execute("SELECT name FROM place_codes").fetchall()
+    return frozenset(word.lower() for row in rows for word in re.split(r"[ /-]", row["name"]) if len(word) >= 3)
+
+
+def is_place(text: str) -> bool:
+    return all(word.lower() in place_names() for word in text.split())
+
+
 def mask_keeping_names(text: str) -> tuple[str, list[str]]:
     """Mask a question for the model, and return the names removed, in order.
-    The names stay in Python: they are never sent to the model or saved."""
+    The names stay in Python: they are never sent to the model or saved.
+    Place names (regions, districts, communities) are not masked."""
     if not text:
         return text, []
-    findings = analyzer().analyze(text=text, entities=ENTITIES, language="en")
+    findings = [f for f in analyzer().analyze(text=text, entities=ENTITIES, language="en")
+                if not (f.entity_type == "PERSON" and is_place(text[f.start:f.end]))]   # "Gumani" is a place
     names = [re.sub(rf"^{TITLES}\s+", "", text[f.start:f.end]).strip()       # "Mrs Ama Mensah" -> "Ama Mensah"
              for f in sorted(findings, key=lambda f: f.start) if f.entity_type == "PERSON"]
-    return mask(text), [name for name in dict.fromkeys(names) if name]
+    operators = {entity: OperatorConfig("replace", {"new_value": placeholder})
+                 for entity, placeholder in PLACEHOLDERS.items()}
+    masked = AnonymizerEngine().anonymize(text=text, analyzer_results=findings, operators=operators).text
+    return masked, [name for name in dict.fromkeys(names) if name]
