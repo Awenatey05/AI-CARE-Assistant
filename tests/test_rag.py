@@ -66,3 +66,20 @@ def test_one_vector_of_768_numbers_per_text(monkeypatch):
     vectors = OllamaEmbedder(model="embeddinggemma", base_url="http://ollama:11434/").encode(["a", "b"])
     assert vectors.shape == (2, 768)
     assert sent == {"url": "http://ollama:11434/api/embed", "model": "embeddinggemma", "input": ["a", "b"]}
+
+
+# ------------------------------------------------
+# Measures for search and answers
+# ------------------------------------------------
+
+from app.rag.evaluation import citation_precision, mean_reciprocal_rank, recall_at_k  # noqa: E402
+
+
+def test_recall_and_reciprocal_rank():
+    assert recall_at_k(["a", "b", "c"], {"b"}, 1) == 0 and recall_at_k(["a", "b", "c"], {"b"}, 2) == 1
+    assert mean_reciprocal_rank([["a", "b"], ["c"]], [{"b"}, {"x"}]) == 0.25
+
+
+def test_citation_precision():
+    assert citation_precision("See [a] and [z].", {"a", "b"}) == 0.5
+    assert citation_precision("No citations.", {"a"}) == 0.0
