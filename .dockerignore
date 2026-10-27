@@ -1,0 +1,9 @@
+.venv
+.env
+__pycache__
+.git
+data/uploads
+data/postgres
+data/backups
+.pytest_cache
+evaluation/proof_commands.md
