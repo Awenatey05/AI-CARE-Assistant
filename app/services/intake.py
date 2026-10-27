@@ -1,4 +1,4 @@
-"""Intake: the one way into the system (README section 6, step 2).
+"""Intake: the one way into the system.
 
 For every arriving case: save the untouched original in storage first, then
 put a job in the queue. FastAPI (Kobo webhook, uploads) and the data-loading

@@ -4,12 +4,6 @@ CHAT WITH THE AI CARE ASSISTANT
 Ask questions about the cases in one region and about the law. The assistant
 remembers the conversation, so follow-up questions such as "this case" or
 "explain further" work. Write names with a capital letter.
-
-Run from the project folder (Postgres and Ollama must be running):
-    python -m scripts.chat northern     a team leader: only that region
-    python -m scripts.chat all          the super administrator: all regions
-Or in the notebook:
-    run_chat("northern")   or   run_chat(None)
 """
 
 from __future__ import annotations

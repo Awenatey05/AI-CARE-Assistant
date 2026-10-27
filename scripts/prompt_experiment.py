@@ -1,5 +1,5 @@
 """
-PROMPT EXPERIMENT (README section 19, exam Q3)
+PROMPT EXPERIMENT
 
 Runs SYSTEM_PROMPT, PROMPT_A, PROMPT_B and PROMPT_C on the same dev cases
 and compares each answer with the answer key (data/labels.json).
@@ -19,11 +19,6 @@ Pipeline:
 Only indicators that can be found in the text are expected: indicators the
 answer key found from the closed answers alone are left out, because the
 model never sees those answers. Recorded calls are left out (they need Whisper).
-
-Run from the project folder:
-    python -m scripts.prompt_experiment              # 50 cases
-    python -m scripts.prompt_experiment --cases 10   # quick check
-    python -m scripts.prompt_experiment --prompts SYSTEM_PROMPT --append   # add one prompt to the results
 """
 
 from __future__ import annotations

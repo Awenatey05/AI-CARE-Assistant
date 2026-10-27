@@ -11,10 +11,6 @@ and unconfirmed ones are checked for escalation about once a minute.
 
 A job that fails is logged and kept in the failed list; the worker carries on.
 Log lines identify cases by reference only: never names, report text or quotes.
-
-Run from the project folder (Postgres, Redis and Ollama must be running):
-    python worker.py
-Stop with Ctrl + C.
 """
 
 from __future__ import annotations

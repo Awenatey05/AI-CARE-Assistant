@@ -7,10 +7,6 @@ worker embedded them, or while Ollama was not running. Only masked text is
 embedded, under the case reference.
 
     cases (masked text, no chunks) -> chunks (120 / 25) -> embeddinggemma -> Postgres
-
-Run from the project folder (Postgres and Ollama must be running):
-    python -m scripts.embed_cases          # only cases without chunks
-    python -m scripts.embed_cases --all    # every case again (after a chunking change)
 """
 
 from __future__ import annotations

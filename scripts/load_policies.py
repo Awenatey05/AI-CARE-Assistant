@@ -7,9 +7,6 @@ the law. Loading again replaces a document's chunks, so it is safe to rerun
 (for example when a policy is updated).
 
     data/policies/*.pdf -> read_pdf -> chunks (120 / 25) -> embeddinggemma -> Postgres
-
-Run from the project folder (Postgres and Ollama must be running):
-    python -m scripts.load_policies
 """
 
 from __future__ import annotations

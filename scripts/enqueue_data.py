@@ -12,10 +12,6 @@ Cases already in the database are skipped, so running it twice does not redo wor
         |
         v
     worker.py (run separately) -> Postgres
-
-Run from the project folder, with the worker running in another terminal:
-    python -m scripts.enqueue_data --all
-    python -m scripts.enqueue_data --field 20 --helpline 10 --uploads   # a small first load
 """
 
 from __future__ import annotations

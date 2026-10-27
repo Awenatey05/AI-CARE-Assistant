@@ -4,10 +4,6 @@ SHOW CASES: what is saved in Postgres.
 For each case: the ID it arrived with, the readable reference it was given,
 its channel and outcome; then the alerts and the numbers used per place.
 Prints no names or report text.
-
-Run from the project folder:
-    python -m scripts.show_cases
-    python -m scripts.show_cases --limit 50
 """
 
 from __future__ import annotations

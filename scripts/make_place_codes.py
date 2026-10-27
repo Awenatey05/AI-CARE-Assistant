@@ -6,9 +6,6 @@ the rules in app/services/case_ref.py. All 16 regions are listed (the Kobo form
 offers all of them). Communities are grouped under their district, because a
 community code only has to be unique within its district.
 The file is meant to be corrected by hand; run this script again only to start over.
-
-Run from the project folder:
-    python -m scripts.make_place_codes
 """
 
 from __future__ import annotations

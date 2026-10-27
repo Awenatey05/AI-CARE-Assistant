@@ -1,12 +1,9 @@
 """
-COMPARE PROMPTS (exam Q3)
+COMPARE PROMPTS
 
 The same reports are given to SYSTEM_PROMPT, PROMPT_A, PROMPT_B and PROMPT_C.
 Only the prompt changes: same report, same model, same temperature.
 Each prompt gets one call (no retry), so its real behaviour is visible.
-
-Run from the project folder:
-    python -m scripts.compare_prompts
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-TRANSCRIPTION CHECK (README sections 8 and 22)
+TRANSCRIPTION CHECK
 
 Transcribes the 10 recorded helpline calls and the 2 videos, and compares
 each transcript with the reference transcript in data/labels.json.
@@ -19,10 +19,6 @@ Pipeline:
 
 Word error rate (WER) = (words substituted + deleted + inserted) / words in the reference.
 0% is a perfect transcript.
-
-Run from the project folder:
-    python -m scripts.transcription_check                 # WHISPER_MODEL from .env
-    python -m scripts.transcription_check --model small
 """
 
 from __future__ import annotations

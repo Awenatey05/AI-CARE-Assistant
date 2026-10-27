@@ -27,7 +27,7 @@ AUDIO_TYPES = {".m4a", ".mp3", ".wav"}
 VIDEO_TYPES = {".mp4", ".mov"}
 LANGUAGE = "en"
 # Whisper's own limit for repetitive (hallucinated) text. On our 12 recordings,
-# English scored 1.40 to 1.54; Dagbani 5.87 and Twi 6.18 (README section 22).
+# English scored 1.40 to 1.54; Dagbani 5.87 and Twi 6.18.
 MAX_COMPRESSION_RATIO = 2.4
 
 
