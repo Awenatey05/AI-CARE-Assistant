@@ -40,10 +40,18 @@ def check_quotes(assessment: Assessment, text: str) -> list[str]:
             if label.present and not quote_in_text(label.quote, text)]
 
 
+# A missing birth certificate is indicator 10 (no legal identity), not trafficking.
+NOT_TRAFFICKING = re.compile(r"birth certificate|regist(er|ered|ration)", re.IGNORECASE)
+TRAFFICKING_WORDS = re.compile(r"agent|brought|employer|street|alone|sent to work|taken to", re.IGNORECASE)
+
+
 def present_indicators(assessment: Assessment) -> list[dict[str, Any]]:
-    """The present indicators, in the form scoring.rule_or_model() expects."""
+    """The present indicators, in the form scoring.rule_or_model() expects. Indicator 6
+    is left out when its quote is only about a birth certificate or registration."""
     return [{"id": label.id, "subtype": label.subtype, "quote": label.quote}
-            for label in assessment.indicators if label.present]
+            for label in assessment.indicators if label.present
+            and not (label.id == 6 and NOT_TRAFFICKING.search(label.quote or "")
+                     and not TRAFFICKING_WORDS.search(label.quote or ""))]
 
 
 def assess_case(case_id: str, report: str, other_answer: str | None = None,

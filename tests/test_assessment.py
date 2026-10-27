@@ -75,3 +75,15 @@ def test_invalid_assessment_rejected(data):
 def test_broken_json_rejected():
     with pytest.raises(ValidationError):
         Assessment.model_validate_json('{"case_id": "c1", "indicators": [')
+
+
+def test_indicator_6_refused_when_its_quote_is_only_about_a_birth_certificate():
+    from app.models.assessment import Assessment
+    from app.services.assessment import present_indicators
+    def answer(quote):
+        labels = [{"id": i, "present": i == 6, "subtype": "b" if i == 6 else None, "quote": quote if i == 6 else None}
+                  for i in range(1, 11)]
+        return Assessment.model_validate({"case_id": "c", "indicators": labels, "summary": "s"})
+    assert present_indicators(answer("She has no birth certificate and the family never registered her birth.")) == []
+    kept = present_indicators(answer("An agent brought her to the city; she has no birth certificate."))
+    assert [i["id"] for i in kept] == [6]

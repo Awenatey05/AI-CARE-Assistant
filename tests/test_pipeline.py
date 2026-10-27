@@ -1,7 +1,7 @@
 """The pipeline's logic, with a fake model, masker and Whisper (no Ollama, no spaCy, no audio).
 
 These tests check that every case goes through the right steps in the right order;
-the model's judgement is measured separately (README section 19).
+the model's judgement is measured separately.
 """
 
 from __future__ import annotations
@@ -129,3 +129,12 @@ def test_sheet_year_comes_from_its_own_dates():
     rows = [{"Date": "12 June"}, {"Date": "12/06/2025"}, {"Date": "2025-06-13"}]
     assert pipeline.sheet_year(rows, default=2026) == 2025
     assert pipeline.sheet_year([{"Pupil": "x"}], default=2026) == 2026
+
+
+def test_could_not_assess_with_danger_words_raises_the_alert():
+    from app.services.pipeline import could_not_assess
+    failed = {"error": "invalid", "details": []}
+    with_words = could_not_assess({"masked_text": "Her uncle beat her with a cable.", "flags": []}, [], {}, failed)
+    assert with_words["alert"] and with_words["urgent_reasons"] == ["possible_critical_not_assessed:1"]
+    without = could_not_assess({"masked_text": "The child is shy at school.", "flags": []}, [], {}, failed)
+    assert not without["alert"] and without["status"] == "could_not_assess"

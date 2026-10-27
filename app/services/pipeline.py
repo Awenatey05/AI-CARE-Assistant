@@ -20,7 +20,7 @@ from collections import Counter
 
 from app.services.field_round import clean_row, interview_date
 from app.services.masking import mask
-from app.services.rules import indicators_from_answers, other_answer_for_model, read_answers
+from app.services.rules import danger_words, indicators_from_answers, other_answer_for_model, read_answers
 from app.services.scoring import (not_scored, rule_or_model, score_case, score_without_form,
                                   urgent_flags)
 from app.services.transcription import transcribe
@@ -50,9 +50,12 @@ def could_not_assess(base: dict[str, Any], rule_found: list[dict[str, Any]],
 
     Indicators already found by the Python rules are kept as observed, and if they
     (or the worker's answers) are urgent, the alert is still raised: a model failure
-    must never hide a child in danger.
+    must never hide a child in danger. Clear danger words in the text raise it too.
     """
     reasons = urgent_flags(rule_found, answers)
+    words = danger_words(base.get("masked_text"))
+    if words:
+        reasons = reasons + [f"possible_critical_not_assessed:{','.join(words)}"]
     return {**base, "status": "could_not_assess", "score": None, "band": None,
             "indicators": [], "observed_indicators": rule_found,
             "alert": bool(reasons), "urgent_reasons": reasons,
@@ -82,7 +85,7 @@ def process_field_submission(submission: dict[str, Any], original_key: str | Non
 
     status = not_scored(answers)
     if status and status != "human_review":
-        # Refused, declined or incomplete: recorded, but not scored (README section 5).
+        # Refused, declined or incomplete: recorded, but not scored.
         return {**base, **score_case(answers, [])}
 
     rule_found = [{"id": i, "subtype": s, "source": "answers"} for i, s in indicators_from_answers(answers)]

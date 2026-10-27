@@ -7,6 +7,8 @@ Python rules, not by the model. Free text (the closing report and
 
 from __future__ import annotations
 
+import re
+
 Indicator = tuple[int, str | None]  # (indicator number, subtype "a"/"b" or None)
 
 # Kobo puts each answer under its form group, e.g. "safety/in_school".
@@ -90,3 +92,22 @@ def other_answer_for_model(answers: dict[str, str]) -> str | None:
     if "other" in selected(answers, "harmful_practice"):
         return (answers.get("harmful_other") or "").strip() or None
     return None
+
+
+# DANGER WORDS IN TEXT THAT COULD NOT BE ASSESSED
+# Used only when the model's answer failed twice: clear words for a critical risk
+# raise the alert anyway, so a person looks at the case first. Words are matched
+# in the masked text, whole words, ignoring capitals.
+DANGER_WORDS = {
+    "1": r"beat(en|s|ing)?|slapped|burn(ed|t)|bruis(e|es|ed)|wound(s|ed)?|injur(y|ies|ed)",
+    "2": r"rap(e|ed)|defiled?|touch(ed|es) her|touch(ed|es) him|sexual",
+    "5": r"marr(y|ied|iage)|betroth(ed)?|bride price|dowry|cutting|witch(craft)?",
+    "6": r"traffick(ed|ing|er)|agent",
+    "self_harm": r"kill (herself|himself)|end (her|his) life|hurt (herself|himself)|suicide|wants? to die",
+}
+
+
+def danger_words(text: str | None) -> list[str]:
+    """The critical indicators (and self-harm) whose danger words appear in the text."""
+    return [risk for risk, words in DANGER_WORDS.items()
+            if text and re.search(rf"\b({words})\b", text, flags=re.IGNORECASE)]
