@@ -1,6 +1,14 @@
 # AI CARE Assistant
 
 
+## The Problem
+
+Child protection organisations receive information about children through two channels: field rounds, where field workers interview children with a questionnaire on an iPad, and the office helpline, where calls are written up as reports and sometimes recorded. After a field round, staff transfer the answers into Excel sheets and analyse them by hand. This creates three problems:
+
+- **Delay:** at-risk children are found only after the round ends and the spreadsheets are compiled. A child in danger can wait days or weeks before anyone acts.
+- **Scattered information:** questionnaires, call reports, recordings and documents sit in different places and formats, so no one has a single view of a child's situation.
+- **Lost continuity:** case knowledge often lives with individual field workers. When a worker leaves, the history of the children in their region can be lost.
+
 ## Description
 
 AI CARE Assistant is an early-warning and case management system built for child protection organisations in Ghana. It receives children's cases from field interviews (KoboToolbox), helpline calls and office files, assesses each case against 10 risk indicators when it arrives, and alerts the team leader when a child may be in danger. Staff can then ask questions about the cases and the child protection laws and get answers with their sources.
@@ -40,6 +48,24 @@ Kobo / Helpline / Uploads → Caddy → API → Redis queue → Worker → Ollam
 - **Streamlit:** the dashboard, uploads and chat pages.
 
 The model runs locally on the computer. The application state (cases, alerts and conversations) is kept in Postgres, not in the model.
+
+## Technology Choices
+
+| Part | Choice | Why |
+|---|---|---|
+| Field data collection | KoboToolbox | Already used by field teams; works offline on iPads |
+| Entrance | Caddy | Automatic HTTPS; the only public entrance |
+| Backend | FastAPI | Typed models, automatic validation, streaming |
+| Job queue | Redis | The API answers straight away while the worker does the slow model work |
+| File store | RustFS (S3) | Keeps the untouched originals. MinIO's images are no longer published; any S3 store can replace it through `.env` |
+| Database and vectors | Postgres + pgvector | Records and similarity search in one service, with region filtering |
+| LLM | `llama3.2` through Ollama | Runs locally, so children's information never leaves the organisation; small enough for an office computer |
+| Embeddings | `embeddinggemma` through Ollama | The balance between languages and hardware: supports the main international languages and runs on a CPU. Compared by reading with `nomic-embed-text` (mainly English) and `qwen3-embedding` (needs a GPU) |
+| Speech to text | Whisper `small` (`faster-whisper`) + ffmpeg | 14.3% word error rate on English instead of 19.1% with `base`, and kept words that matter ("14-year-old", not "40-year-old") |
+| Masking | Presidio + spaCy `en_core_web_lg` | Missed the child's name in 23 of 139 reports instead of 92 with the small model |
+| Validation | Pydantic | Schema check of the model's output |
+| Pages | Streamlit | Dashboard, uploads and chat in Python |
+| Deployment | Docker Compose | Runs all services together the same way on any computer |
 
 ## Installation
 
@@ -156,6 +182,20 @@ The prompts are kept separately in `app/llm/prompts.py`. There are two main prom
 Conversations are saved in Postgres (`chat_messages`), not in the model. With each question, the last 3 questions and answers are sent to the model, so follow-ups like "explain further" work. Questions are saved masked, so no child's name is stored.
 
 In the chat page, each role and region keeps its own conversation; **Clear chat** and **Reset** start a new one. In the terminal (`python -m scripts.chat northern`), `/history` shows the conversation, `/reset` starts a new one and `/exit` leaves.
+
+## RAG Design
+
+Documents → masking → chunking → embeddings → pgvector → question → similarity search → relevant chunks → llama3.2 → answer with sources
+
+- **Sources:** 8 child protection laws and policies (`data/policies/`, PDF) and every case's report. Only masked text is chunked: names appear as `[NAME]` and phone numbers as `[PHONE]`.
+- **Chunking:** 120 words, each overlapping the one before by 25 words (`app/rag/rag.py`), so a sentence that falls on a cut is still whole in one chunk. Most case reports are shorter than 120 words and stay in one chunk. The policies give 1,263 chunks and the cases 1,189.
+- **Embeddings:** `embeddinggemma`, 768 numbers per chunk, stored in Postgres with pgvector.
+- **Search:** the question is compared with every chunk by cosine similarity in Postgres, and the 5 closest chunks are given to the model, however low their score: it is safer for the model to read a chunk that does not help than to hide one about a child at risk. A team leader searches only their own region's cases; the policies are always included.
+- **Sources:** each chunk is named after its source (`NR-TML-GUM-0012-2026#chunk-0`, `policy_childrens_act_560.pdf#chunk-16`) and answers cite it in brackets. A citation that search did not return is removed.
+- **Missing evidence:** when the chunks do not answer the question, the model says "I don't have enough evidence".
+- **Counting:** search finds text that means something similar; it cannot count or list. "How many High cases?" is answered by the case tools.
+
+**Why retrieval instead of every document in the prompt:** the policies alone are about 120,000 words and the cases grow every day, far beyond the model's context window. Retrieval sends only the relevant chunks, which keeps answers fast, makes it less likely that the model mixes up children, lets each answer cite its source, and applies the region filter before the model sees anything.
 
 ## Tools
 
