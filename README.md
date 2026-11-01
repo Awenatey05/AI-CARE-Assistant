@@ -62,7 +62,7 @@ The model runs locally on the computer. The application state (cases, alerts and
 | LLM | `llama3.2` through Ollama | Runs locally, so children's information never leaves the organisation; small enough for an office computer |
 | Embeddings | `embeddinggemma` through Ollama | The balance between languages and hardware: supports the main international languages and runs on a CPU. Compared by reading with `nomic-embed-text` (mainly English) and `qwen3-embedding` (needs a GPU) |
 | Speech to text | Whisper `small` (`faster-whisper`) + ffmpeg | 14.3% word error rate on English instead of 19.1% with `base`, and kept words that matter ("14-year-old", not "40-year-old") |
-| Masking | Presidio + spaCy `en_core_web_lg` | Missed the child's name in 23 of 139 reports instead of 92 with the small model |
+| Masking | Presidio + spaCy `en_core_web_lg` | Missed far fewer children's names than the small model |
 | Validation | Pydantic | Schema check of the model's output |
 | Pages | Streamlit | Dashboard, uploads and chat in Python |
 | Deployment | Docker Compose | Runs all services together the same way on any computer |
