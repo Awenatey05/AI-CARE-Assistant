@@ -3,7 +3,7 @@
 
 ## The Problem
 
-Child protection organisations receive information about children through two channels: field rounds, where field workers interview children with a questionnaire on an iPad, and the office helpline, where calls are written up as reports and sometimes recorded. After a field round, staff transfer the answers into Excel sheets and analyse them by hand. This creates three problems:
+Child protection organisations receive information about children through two channels: field rounds, where field workers interview children with a questionnaire on an Android device, and the office helpline, where calls are written up as reports and sometimes recorded. After a field round, staff transfer the answers into Excel sheets and analyse them by hand. This creates three problems:
 
 - **Delay:** at-risk children are found only after the round ends and the spreadsheets are compiled. A child in danger can wait days or weeks before anyone acts.
 - **Scattered information:** questionnaires, call reports, recordings and documents sit in different places and formats, so no one has a single view of a child's situation.
@@ -53,7 +53,7 @@ The model runs locally on the computer. The application state (cases, alerts and
 
 | Part | Choice | Why |
 |---|---|---|
-| Field data collection | KoboToolbox | Already used by field teams; works offline on iPads |
+| Field data collection | KoboToolbox | Already used by field teams; works offline on Android devices |
 | Entrance | Caddy | Automatic HTTPS; the only public entrance |
 | Backend | FastAPI | Typed models, automatic validation, streaming |
 | Job queue | Redis | The API answers straight away while the worker does the slow model work |
